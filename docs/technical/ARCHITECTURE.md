@@ -11,6 +11,7 @@ Contém todo o código funcional em JavaScript Vanilla (ES6+), organizado para s
 * **core/**: O "cérebro" do sistema.
   * `Engine.js`: Gerencia o Game Loop (Update/Draw) e o estado global.
   * `InputHandler.js`: Captura comandos de teclado (plataforma) e cliques nas cartas.
+  * `main.js`: Ajuda a inicializar o Jogo
 * **entities/**: Modelagem dos habitantes de Marah.
   * `Player.js`: Lógica dos personagens como Íris, Atom, Ioruh e etc.
   * `Enemy.js`: Comportamento do Guardião do Selo de Cera e do Colecionador de Nomes (Além dos próximos inimigos).

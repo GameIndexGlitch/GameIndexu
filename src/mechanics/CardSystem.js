@@ -137,7 +137,37 @@ export class CardSystem { // Gerencia a lógica de combate com cartas entre joga
         return { success: true, message: `${card.name} jogada.` };
     }
 
-    
+    // Método para comprar uma carta gastando mana
+    buyCard() {
+        const custoCompra = 2;
+
+        // Não permite comprar se o duelo acabou ou não for o turno do player
+        if (this.winner || !this.isPlayerTurn) return { success: false };
+
+        // Verifica se a mão já está cheia (limite de 5)
+        if (this.player.hand.length >= this.maxHandSize) {
+            this.addMessage("Mão cheia! Não é possível comprar mais.");
+            return { success: false };
+        }
+
+        // Verifica se tem mana suficiente (os 5 que você pediu)
+        if (this.manaManager && this.manaManager.canSpend(custoCompra)) {
+            this.manaManager.spend(custoCompra); // Gasta a mana
+            this.drawCards(1); // Compra apenas 1 carta
+            this.addMessage(`Comprou uma carta (-${custoCompra} Mana).`);
+
+            // Se a mana zerar após a compra, passa o turno
+            if (this.mana <= 0) {
+                this.addMessage("Mana esgotada! Turno encerrado.");
+                this.endTurn();
+            }
+
+            return { success: true };
+        } else {
+            this.addMessage(`Mana insuficiente! Precisa de ${custoCompra}.`);
+            return { success: false };
+        }
+    }
 
     // Termina o turno do jogador e resolve o turno do inimigo.
     endTurn() {

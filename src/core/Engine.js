@@ -91,10 +91,9 @@ export class Engine {
             }
         }
 
-        // Comprar cartas para completar a mão
+        // Comprar cartas
         if (e.code === 'KeyR') {
-            this.cardSystem.drawCards(this.cardSystem.maxHandSize - this.cardSystem.hand.length);
-            this.cardSystem.addMessage('Compra cartas para fortalecer sua mão.');
+            this.cardSystem.buyCard();
         }
 
         // Finalizar turno e permitir reação do inimigo

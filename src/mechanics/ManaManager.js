@@ -24,7 +24,7 @@ export class ManaManager {
     }
 
     refill() {
-        this.currentMana = this.maxMana; // enche a mana no final do turno
+        this.currentMana = this.maxMana; // restaura mana
     }
 
     get mana() {

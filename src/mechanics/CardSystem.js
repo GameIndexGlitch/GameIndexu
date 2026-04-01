@@ -137,6 +137,8 @@ export class CardSystem { // Gerencia a lógica de combate com cartas entre joga
         return { success: true, message: `${card.name} jogada.` };
     }
 
+    
+
     // Termina o turno do jogador e resolve o turno do inimigo.
     endTurn() {
         if (this.winner) {
@@ -144,15 +146,32 @@ export class CardSystem { // Gerencia a lógica de combate com cartas entre joga
         }
 
         this.addMessage('Fim de turno do jogador. Vez do Inimigo!');
-        this.enemyAttack(); // inimigo faz seu ataque de retorno
+
+        setTimeout(() => {
+            this.enemyAttack(); // inimigo faz seu ataque de retorno
+            this.checkWinner(); // checa vitória após o ataque inimigo
+
+            if(!this.winner) {
+                this.startPlayerTurn(); // chama o início do seu novo turno 
+            }
+
+        }, 1000);
+
+        return { success: true, message: 'Fim de turno.' };
+    }
+
+    // Restaura aleatoriamente a mana no turno
+    startPlayerTurn() {
+        this.isPlayerTurn = true;
 
         if (this.manaManager) {
-            this.manaManager.refill(); // recarrega mana para o próximo turno
+            const min = 2; // Minimo de mana que volta no turno
+            const max = 5; // Máximo de mana que volta no turno
+            const valorAleatorio = Math.floor(Math.random() * (max - min + 1)) + min; // Cria a aleatoriedade
+
+            this.manaManager.restore(valorAleatorio); // Restaura o valor
         }
 
-        this.drawCards(this.maxHandSize - this.player.hand.length); // completa a mão do jogador
-        this.checkWinner(); // checa vitória após o ataque inimigo
-        return { success: true, message: 'Fim de turno.' };
     }
 
     enemyAttack() {

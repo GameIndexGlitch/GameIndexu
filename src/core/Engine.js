@@ -95,6 +95,7 @@ export class Engine {
 
             if (keysToBlock.includes(e.code)) {
                 e.preventDefault(); // Impede a tela de "pular" ou mexer
+            }
             if (this.gameState === 'EXPLORATION' && e.code === 'KeyI') {
                 this.openInventory();
                 return;

@@ -101,10 +101,10 @@ export class DeckCharacter {
     }
 }
 
-// Deck do personagem Íris Shadowlace com vida, cor e cartas específicas
-export class ÍrisShadowlace extends DeckCharacter {
+// Deck do personagem Irís Shadowlace com vida, cor e cartas específicas
+export class IrísShadowlace extends DeckCharacter {
     constructor(color) {
-        super('Íris Shadowlace', color, 28);
+        super('Irís Shadowlace', color, 28);
     }
 
     createDeck() {
@@ -256,7 +256,7 @@ export class DefaultEnemy extends DeckCharacter {
 
 export function createBattleCharacter(name, color) { // Retorna o personagem de duelo correto com base no nome escolhido
     switch (name) {
-        case 'Íris Shadowlace': return new ÍrisShadowlace(color);
+        case 'Irís Shadowlace': return new IrísShadowlace(color);
         case 'Atom Shadowlace': return new AtomShadowlace(color);
         case 'Ioruh': return new Ioruh(color);
         case 'Toshy': return new Toshy(color);

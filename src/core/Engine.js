@@ -154,7 +154,7 @@ export class Engine {
             this.selectionScene.update(deltaTime); //Atualiza lógica da seleção [cite: 93]
         } else if (this.gameState === 'EXPLORATION') {
             if (!this.player) {
-                this.player = new Player(this.selectedCharacter.color, this.physics); //Cria o herói com sua cor e física
+                this.player = new Player(this.selectedCharacter.color, this.physics, this.selectedCharacter.name); //Cria o herói com sua cor e física
                 this.input = new InputHandler(this, this.player);//Ativa os comandos
             }
             this.player.update(); //Processa gravidade e movimento [cite: 10, 22]

@@ -171,8 +171,8 @@ export class CardSystem { // Gerencia a lógica de combate com cartas entre joga
             this.enemyAttack(); // inimigo faz seu ataque de retorno
             this.checkWinner(); // checa vitória após o ataque inimigo
 
-            if(!this.winner) {
-                this.startPlayerTurn(); // chama o início do seu novo turno 
+            if (!this.winner) {
+                this.startPlayerTurn(); // chama o início do seu novo turno
             }
 
         }, 1000);

@@ -13,7 +13,7 @@ export class InitialScene {
         ];
         this.hoveredIndex = -1; // Índice do botão em hover
         this.assetLoader = new AssetLoader();
-        this.assetLoader.loadImage('background', 'assets/sprites/fundo.png')
+        this.assetLoader.loadImage('background', './assets/sprites/fundo.png')
             .then(() => console.log('Imagem de fundo carregada'))
             .catch(err => console.error('Erro ao carregar imagem:', err));
     }

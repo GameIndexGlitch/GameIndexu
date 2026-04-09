@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+release-build/git add .gitignore
+git commit --amend --no-edit
+git push origin main --force

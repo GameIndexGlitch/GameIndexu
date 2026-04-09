@@ -148,7 +148,7 @@ export class Engine {
 
     update(deltaTime) {
         // Atualiza a lógica do jogo dependendo do estado atual
-         if (this.gameState === 'INITIAL') {
+        if (this.gameState === 'INITIAL') {
             this.initialScene.update(deltaTime);
         } else if (this.gameState === 'SELECTION') {
             this.selectionScene.update(deltaTime); //Atualiza lógica da seleção [cite: 93]
@@ -259,7 +259,7 @@ export class Engine {
 
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); //Limpa o rastro anterior
-        
+
         if (this.gameState === 'INITIAL') {
             this.initialScene.draw(this.ctx);
         } else if (this.gameState === 'SELECTION') {

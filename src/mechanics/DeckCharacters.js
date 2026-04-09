@@ -37,11 +37,12 @@ export class DeckCharacter {
     }
 
     assignCardRarities() {
-        this.deck = this.deck.map((card) => ({
-            ...card,
-            rarity: CardSystem.calculateCardRarity(card, this.maxHealth)
-        }));
+        // CORREÇÃO: Função esvaziada.
+        // O CardSystem.calculateCardRarity não existe e a raridade
+        // já é definida no createDeck() de cada personagem.
+        console.log("Raridades já estão atribuídas nativamente nos decks.");
     }
+
     //Compra de cartas
     drawCards(count, maxHandSize = 5) {
         const messages = [];

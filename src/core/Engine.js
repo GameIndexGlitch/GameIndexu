@@ -99,9 +99,7 @@ export class Engine {
                 e.preventDefault(); // Impede a tela de "pular" ou mexer
             }
 
-            // ==========================================
             // MODIFICAÇÃO AQUI: I abre e fecha o inventário
-            // ==========================================
             if (e.code === 'KeyI') {
                 if (this.gameState === 'EXPLORATION') {
                     this.openInventory();
@@ -112,9 +110,8 @@ export class Engine {
                 }
             }
 
-            // ==========================================
             // MODIFICAÇÃO AQUI: Esc livre para configurações futuras
-            // ==========================================
+
             if (e.code === 'Escape') {
                 // this.openSettings();
                 console.log("Apertou ESC. Botão reservado para o menu de configurações futuro.");
@@ -170,6 +167,8 @@ export class Engine {
                 this.player = new Player(this.selectedCharacter.color, this.physics, this.selectedCharacter.name); //Cria o herói com sua cor e física
                 this.input = new InputHandler(this, this.player);//Ativa os comandos
             }
+
+            this.input.update(); // Atualiza a leitura contínua do teclado para movimento liso
             this.player.update(); //Processa gravidade e movimento
 
             // Atualiza inimigos e busca colisões com o player
@@ -279,34 +278,6 @@ export class Engine {
             this.drawSelection();
         } else if (this.gameState === 'EXPLORATION') {
             this.drawExploration();
-        } else if (this.gameState === 'BATTLE') {
-            this.combatScene.draw(this.ctx);
-        } else if (this.gameState === 'INVENTORY') {
-            this.inventoryScene.draw(this.ctx);
-        }
-    }
-
-    drawSelection() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); //Limpa o rastro anterior
-
-        if (this.gameState === 'INITIAL') {
-            this.initialScene.draw(this.ctx);
-        } else if (this.gameState === 'SELECTION') {
-            this.drawSelection();
-        } else if (this.gameState === 'EXPLORATION') {
-            this.drawExploration();
-        } else if (this.gameState === 'BATTLE') {
-            this.combatScene.draw(this.ctx);
-        }
-    }
-
-    drawSelection() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); //Limpa o rastro anterior
-
-        if (this.gameState === 'SELECTION') {
-            this.selectionScene.draw(this.ctx);
-        } else if (this.gameState === 'EXPLORATION') {
-            this.drawExploration();
 
             // Transição de combate: zoom dramático + dark overlay
             if (this.combatEnter.active) {
@@ -335,6 +306,11 @@ export class Engine {
         } else if (this.gameState === 'INVENTORY') {
             this.inventoryScene.draw(this.ctx);
         }
+    }
+
+    drawSelection() {
+        // Apenas desenha a cena de seleção de fato
+        this.selectionScene.draw(this.ctx);
     }
 
     drawExploration() {

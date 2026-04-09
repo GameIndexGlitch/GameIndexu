@@ -116,7 +116,6 @@ export class Engine {
             // MODIFICAÇÃO AQUI: Esc livre para configurações futuras
             // ==========================================
             if (e.code === 'Escape') {
-                // Futuramente vocês podem chamar algo como:
                 // this.openSettings();
                 console.log("Apertou ESC. Botão reservado para o menu de configurações futuro.");
                 return;

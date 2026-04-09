@@ -9,7 +9,7 @@ export class Player {
 
         // Configuração da Sprite da Iris
         this.irisSprite = new Image();
-        this.irisSprite.src = 'assets/sprites/cartas_select/SpriteSheetIdleIris.png'
+        this.irisSprite.src = 'assets/sprites/spritesheets/idle/SpriteSheetIdleIris.png'
         this.irisLoad = false;
         this.irisSprite.onload = () => { this.irisLoad = true; };
 

@@ -82,9 +82,9 @@ export class SelectionScene {
             const offsetX = (this.rectWidth - scaledWidth) / 2;
             const offsetY = (this.rectHeight - scaledHeight) / 2;
 
-            // Brilho azul marinho no hover
+            // Brilho bege no hover
             if (isHovered) {
-                ctx.shadowColor = '#000080';
+                ctx.shadowColor = '#60402b';
                 ctx.shadowBlur = 20;
             }
 

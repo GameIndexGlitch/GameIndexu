@@ -2,20 +2,25 @@ import { AssetLoader } from '../utils/AssetLoader.js';
 
 export class InitialScene {
     constructor(engine) {
-        this.engine = engine; // Referência ao motor
-        this.animationTime = 0; // Tempo para animações
-        this.rectWidth = 250; // Largura do botão
-        this.rectHeight = 70; // Altura do botão
-        this.confirming = false; // Estado de confirmação
-        this.confirmTime = 0; // Tempo da animação de confirmação
-        this.characters = [
-            { name: 'Start', color: ' #bf00ff' }
-        ];
-        this.hoveredIndex = -1; // Índice do botão em hover
+        this.engine = engine;
+        this.animationTime = 0;
+        this.rectWidth = 250;
+        this.rectHeight = 100;
+        this.confirming = false;
+        this.confirmTime = 0;
+        this.hoveredIndex = -1;
         this.assetLoader = new AssetLoader();
-        this.assetLoader.loadImage('background', './assets/sprites/fundo.png')
+
+        // pixels pra subir o botão do centro da tela:
+        this.offsetYSubida = 150;
+
+        this.assetLoader.loadImage('background', './assets/backgrounds/fundotelainicial.png')
             .then(() => console.log('Imagem de fundo carregada'))
             .catch(err => console.error('Erro ao carregar imagem:', err));
+
+        this.assetLoader.loadImage('startButton', './assets/sprites/buttons/botao_start.png')
+            .then(() => console.log('Sprite do botão carregada'))
+            .catch(err => console.error('Erro ao carregar botão:', err));
     }
 
     // Atualiza o estado da cena
@@ -23,7 +28,8 @@ export class InitialScene {
         this.hoveredIndex = -1;
         if (this.engine.mouseX !== undefined && this.engine.mouseY !== undefined) {
             const x = (this.engine.canvas.width - this.rectWidth) / 2;
-            const y = (this.engine.canvas.height - this.rectHeight) / 2;
+            const y = (this.engine.canvas.height - this.rectHeight) / 2 - this.offsetYSubida; // <-- Ajuste de altura aqui
+
             if (this.engine.mouseX >= x && this.engine.mouseX <= x + this.rectWidth &&
                 this.engine.mouseY >= y && this.engine.mouseY <= y + this.rectHeight) {
                 this.hoveredIndex = 0;
@@ -54,15 +60,10 @@ export class InitialScene {
             ctx.fillRect(0, 0, this.engine.canvas.width, this.engine.canvas.height);
         }
 
-        ctx.fillStyle = '#FFF'; // Cor do texto
-        ctx.font = '30px Arial'; // Fonte do título
-        ctx.textAlign = 'center'; // Centraliza texto
-        ctx.fillText('Vazio de Marah', this.engine.canvas.width / 2, 100);
-
-        // Desenha o botão no centro
+        // Desenha o botão no centro e ajustado para cima
         const x = (this.engine.canvas.width - this.rectWidth) / 2;
-        const y = (this.engine.canvas.height - this.rectHeight) / 2;
-        const button = this.characters?.[0] ?? { name: 'Start', color: '#FFFFFF' };
+        const y = (this.engine.canvas.height - this.rectHeight) / 2 - this.offsetYSubida; // <-- Ajuste de altura aqui
+
         const isHovered = this.hoveredIndex === 0;
         const scale = isHovered ? 1.05 : 1;
         const scaledWidth = this.rectWidth * scale;
@@ -71,18 +72,28 @@ export class InitialScene {
         const offsetY = (this.rectHeight - scaledHeight) / 2;
 
         if (isHovered) {
-            ctx.shadowColor = '#000080';
+            ctx.shadowColor = '#60402b';
             ctx.shadowBlur = 20;
         }
 
-        ctx.fillStyle = button.color;
-        ctx.fillRect(x + offsetX, y + offsetY, scaledWidth, scaledHeight);
-        ctx.shadowColor = 'transparent';
+        // Tenta pegar a imagem do botão que carregamos
+        const btnImage = this.assetLoader.get('startButton');
 
-        ctx.fillStyle = '#000';
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(button.name, x + this.rectWidth / 2, y + this.rectHeight / 2 + 8);
+        if (btnImage) {
+            // Se a imagem carregou com sucesso, desenha ela!
+            ctx.drawImage(btnImage, x + offsetX, y + offsetY, scaledWidth, scaledHeight);
+        } else {
+            // Se der erro de carregamento, desenha um retângulo marrom de segurança
+            ctx.fillStyle = '#60402b';
+            ctx.fillRect(x + offsetX, y + offsetY, scaledWidth, scaledHeight);
+
+            ctx.fillStyle = '#FFF';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Start', x + this.rectWidth / 2, y + this.rectHeight / 2 + 8);
+        }
+
+        ctx.shadowColor = 'transparent'; // Remove a sombra pro resto da tela
     }
 
     selectButon() {
@@ -92,7 +103,8 @@ export class InitialScene {
 
     handleInput(mouseX, mouseY) {
         const x = (this.engine.canvas.width - this.rectWidth) / 2;
-        const y = (this.engine.canvas.height - this.rectHeight) / 2;
+        const y = (this.engine.canvas.height - this.rectHeight) / 2 - this.offsetYSubida; // <-- Ajuste de altura aqui do clique
+
         if (mouseX >= x && mouseX <= x + this.rectWidth && mouseY >= y && mouseY <= y + this.rectHeight) {
             this.selectButon();
         }

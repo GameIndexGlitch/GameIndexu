@@ -2,9 +2,9 @@ export class SelectionScene {
     constructor(engine) {
         this.engine = engine;//Referência ao motor
         this.characters = [
-            { name: 'Irís Shadowlace', class: 'Feiticeira Demônia/Anjo', color: '#FF4500', portrait: './assets/sprites/cartas_select/CartaIris.png' }, //Fogo [cite: 80]
+            { name: 'Irís Shadowlace', class: 'Feiticeira Suraggel', color: '#FF4500', portrait: './assets/sprites/cartas_select/CartaIris.png' }, //Fogo [cite: 80]
             { name: 'Atom Shadowlace', class: 'Golem de Pedra', color: '#708090', portrait: './assets/sprites/cartas_select/CartaAtom.png' }, //Metal [cite: 81]
-            { name: 'Ioruh', class: 'Druida Coruja', color: '#8B4513', portrait: './assets/sprites/cartas_select/CartaIoruh.png' }, //Madeira [cite: 82]
+            { name: 'Ioruh', class: 'Moreau Coruja Inventor', color: '#8B4513', portrait: './assets/sprites/cartas_select/CartaIoruh.png' }, //Madeira [cite: 82]
             { name: 'Toshy', class: 'Necromante Osteon', color: '#00BFFF', portrait: './assets/sprites/cartas_select/CartaToshy.png' }, //Fogo Azul [cite: 83]
             { name: 'Mogli', class: 'Arqueiro Trog', color: '#228B22', portrait: './assets/sprites/cartas_select/CartaMogli.png' }, //Folha [cite: 84]
             { name: 'Thanatá', class: 'Maga Humana', color: '#FFD700', portrait: './assets/sprites/cartas_select/CartaThanata.png' } //Moeda [cite: 85]

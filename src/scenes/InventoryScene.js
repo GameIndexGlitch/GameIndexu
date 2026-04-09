@@ -47,7 +47,7 @@ export class InventoryScene {
         ctx.fillText('Inventário', this.x + 24, this.y + 36);
         ctx.font = '16px Arial';
         ctx.fillText(`Fragmentos: ${this.engine.memoryFragments}`, this.x + 24, this.y + 62);
-        ctx.fillText('Pressione ESC para fechar.', this.x + 24, this.y + 84);
+        ctx.fillText('Pressione i para fechar.', this.x + 24, this.y + 84);
 
         // Frame do portrait
         ctx.fillStyle = '#22222D';

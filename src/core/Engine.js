@@ -1,6 +1,6 @@
-import { Player } from '../entities/Player.js'; //Importa a lógica do herói [cite: 6]
+import { Player } from '../entities/Player.js'; //Importa a lógica do herói
 import { InputHandler } from './InputHandler.js'; //Importa o leitor de teclado
-import { SelectionScene } from '../scenes/SelectionScene.js'; //Importa a tela de escolha [cite: 93, 96]
+import { SelectionScene } from '../scenes/SelectionScene.js'; //Importa a tela de escolha
 import { CombatScene } from '../scenes/CombatScene.js'; //Importa a nova cena de combate
 import { InventoryScene } from '../scenes/InventoryScene.js'; //Importa a janela de inventário
 import { CardSystem } from '../mechanics/CardSystem.js'; //Importa o sistema das cartas
@@ -16,14 +16,14 @@ export class Engine {
         this.battleEnemy = null; // Inimigo atual do duelo
         this.canvas = document.getElementById(canvasId); //Busca o canvas no HTML
         this.ctx = this.canvas.getContext('2d'); //Ativa o modo de desenho 2D
-        this.initialScene = new InitialScene(this); //Instancia a cena inicial [cite: 93]
-        this.selectionScene = new SelectionScene(this); //Instancia a cena de seleção [cite: 93]
+        this.initialScene = new InitialScene(this); //Instancia a cena inicial
+        this.selectionScene = new SelectionScene(this); //Instancia a cena de seleção
         this.inventoryScene = new InventoryScene(this); // Instancia a janela de inventário
-        this.player = null; //O herói começa vazio até a escolha [cite: 6]
+        this.player = null; //O herói começa vazio até a escolha
         this.input = null; //O teclado liga após a seleção
-        this.selectedCharacter = null; //Armazena o herói escolhido [cite: 96]
+        this.selectedCharacter = null; //Armazena o herói escolhido
         this.battleEndTimeout = null; // Timeout usado para voltar à exploração após o fim da batalha
-        this.gameState = 'INITIAL'; //Começa na tela de seleção [cite: 93]
+        this.gameState = 'INITIAL'; //Começa na tela de seleção
         this.memoryFragments = 0; // Fragmentos de Memória acumulados
         this.inventory = [
             { id: 1, name: 'Varinha Flamejante', type: 'weapon', desc: '+2 em cartas attack', bonus: { attack: 2 } },
@@ -82,7 +82,7 @@ export class Engine {
             if (this.gameState === 'INITIAL') {
                 this.initialScene.handleInput(mouseX, mouseY); //Envia o clique para a cena inicial
             } else if (this.gameState === 'SELECTION') {
-                this.selectionScene.handleInput(mouseX, mouseY); //Envia o clique para a cena [cite: 96]
+                this.selectionScene.handleInput(mouseX, mouseY); //Envia o clique para a cena
             } else if (this.gameState === 'BATTLE') {
                 this.handleCardClick(mouseX, mouseY); //Processa clique nas cartas durante batalha
             } else if (this.gameState === 'INVENTORY') {
@@ -98,13 +98,27 @@ export class Engine {
             if (keysToBlock.includes(e.code)) {
                 e.preventDefault(); // Impede a tela de "pular" ou mexer
             }
-            if (this.gameState === 'EXPLORATION' && e.code === 'KeyI') {
-                this.openInventory();
-                return;
+
+            // ==========================================
+            // MODIFICAÇÃO AQUI: I abre e fecha o inventário
+            // ==========================================
+            if (e.code === 'KeyI') {
+                if (this.gameState === 'EXPLORATION') {
+                    this.openInventory();
+                    return;
+                } else if (this.gameState === 'INVENTORY') {
+                    this.closeInventory();
+                    return;
+                }
             }
 
-            if (this.gameState === 'INVENTORY' && e.code === 'Escape') {
-                this.closeInventory();
+            // ==========================================
+            // MODIFICAÇÃO AQUI: Esc livre para configurações futuras
+            // ==========================================
+            if (e.code === 'Escape') {
+                // Futuramente vocês podem chamar algo como:
+                // this.openSettings();
+                console.log("Apertou ESC. Botão reservado para o menu de configurações futuro.");
                 return;
             }
 
@@ -151,13 +165,13 @@ export class Engine {
         if (this.gameState === 'INITIAL') {
             this.initialScene.update(deltaTime);
         } else if (this.gameState === 'SELECTION') {
-            this.selectionScene.update(deltaTime); //Atualiza lógica da seleção [cite: 93]
+            this.selectionScene.update(deltaTime); //Atualiza lógica da seleção
         } else if (this.gameState === 'EXPLORATION') {
             if (!this.player) {
                 this.player = new Player(this.selectedCharacter.color, this.physics, this.selectedCharacter.name); //Cria o herói com sua cor e física
                 this.input = new InputHandler(this, this.player);//Ativa os comandos
             }
-            this.player.update(); //Processa gravidade e movimento [cite: 10, 22]
+            this.player.update(); //Processa gravidade e movimento
 
             // Atualiza inimigos e busca colisões com o player
             for (const enemy of this.worldEnemies) {
@@ -325,8 +339,8 @@ export class Engine {
     }
 
     drawExploration() {
-        this.ctx.fillStyle = '#FFFFFF'; //Fundo do Silêncio Branco [cite: 2]
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); //Pinta o fundo [cite: 3]
+        this.ctx.fillStyle = '#FFFFFF'; //Fundo do Silêncio Branco
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); //Pinta o fundo
 
         // Desenha as plataformas
         this.physics.drawPlatforms(this.ctx);
@@ -338,13 +352,13 @@ export class Engine {
             }
         }
 
-        if (this.player) this.player.draw(this.ctx); //Desenha o herói atual [cite: 6]
+        if (this.player) this.player.draw(this.ctx); //Desenha o herói atual
 
         this.ctx.fillStyle = 'black'; //Cor das letras
         this.ctx.textAlign = 'left'; //Alinhamento à esquerda
         this.ctx.font = 'bold 20px Arial'; //Fonte do status
-        this.ctx.fillText(`Herói: ${this.selectedCharacter.name}`, 20, 40); //Nome do herói [cite: 6]
-        this.ctx.fillText(`Setor: Caminho de Vidro e Ossos`, 20, 70); //Localização [cite: 12]
+        this.ctx.fillText(`Herói: ${this.selectedCharacter.name}`, 20, 40); //Nome do herói
+        this.ctx.fillText(`Setor: Caminho de Vidro e Ossos`, 20, 70); //Localização
         this.ctx.fillText(`Fragmentos: ${this.memoryFragments}`, 20, 100);
         this.ctx.font = '16px Arial';
         this.ctx.fillText('Pressione I para abrir o inventário.', 20, 130);

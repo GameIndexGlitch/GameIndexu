@@ -16,6 +16,7 @@ export class Engine {
         this.battleEnemy = null; // Inimigo atual do duelo
         this.canvas = document.getElementById(canvasId); //Busca o canvas no HTML
         this.ctx = this.canvas.getContext('2d'); //Ativa o modo de desenho 2D
+
         this.initialScene = new InitialScene(this); //Instancia a cena inicial
         this.selectionScene = new SelectionScene(this); //Instancia a cena de seleção
         this.inventoryScene = new InventoryScene(this); // Instancia a janela de inventário
@@ -99,7 +100,7 @@ export class Engine {
                 e.preventDefault(); // Impede a tela de "pular" ou mexer
             }
 
-            // MODIFICAÇÃO AQUI: I abre e fecha o inventário
+            // I abre e fecha o inventário
             if (e.code === 'KeyI') {
                 if (this.gameState === 'EXPLORATION') {
                     this.openInventory();
@@ -110,10 +111,8 @@ export class Engine {
                 }
             }
 
-            // MODIFICAÇÃO AQUI: Esc livre para configurações futuras
-
+            // Esc livre para configurações futuras
             if (e.code === 'Escape') {
-                // this.openSettings();
                 console.log("Apertou ESC. Botão reservado para o menu de configurações futuro.");
                 return;
             }
@@ -272,39 +271,23 @@ export class Engine {
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); //Limpa o rastro anterior
 
+        // CORREÇÃO DA PIXEL ART: Força o navegador a não embaçar o zoom
+        this.ctx.imageSmoothingEnabled = false;
+
+        // CORREÇÃO DO BUG DE TEXTO: Forçam o alinhamento sempre à esquerda
+        this.ctx.textAlign = 'left';
+
         if (this.gameState === 'INITIAL') {
             this.initialScene.draw(this.ctx);
         } else if (this.gameState === 'SELECTION') {
-            this.drawSelection();
+            this.selectionScene.draw(this.ctx);
         } else if (this.gameState === 'EXPLORATION') {
             this.drawExploration();
-
-            // Transição de combate: zoom dramático + dark overlay
-            if (this.combatEnter.active) {
-                const p = Math.min(this.combatEnter.progress / this.combatEnter.duration, 1);
-                const alpha = 0.3 + 0.5 * p;
-                this.ctx.fillStyle = `rgba(0,0,0,${alpha})`;
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-                const zoom = 1 + 0.2 * p;
-                const focusX = this.player && this.pendingCombatEnemy
-                    ? (this.player.x + this.pendingCombatEnemy.x) / 2
-                    : this.canvas.width / 2;
-                const focusY = this.player && this.pendingCombatEnemy
-                    ? (this.player.y + this.pendingCombatEnemy.y) / 2
-                    : this.canvas.height / 2;
-
-                this.ctx.save();
-                this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
-                this.ctx.scale(zoom, zoom);
-                this.ctx.translate(-focusX, -focusY);
-                this.drawExploration(); // redesenha com zoom focado
-                this.ctx.restore();
-            }
         } else if (this.gameState === 'BATTLE') {
             this.combatScene.draw(this.ctx);
         } else if (this.gameState === 'INVENTORY') {
-            this.inventoryScene.draw(this.ctx);
+            this.drawExploration(); // DESENHA O MUNDO PRIMEIRO
+            this.inventoryScene.draw(this.ctx); // DESENHA O INVENTÁRIO POR CIMA
         }
     }
 
@@ -314,50 +297,85 @@ export class Engine {
     }
 
     drawExploration() {
-        this.ctx.fillStyle = '#FFFFFF'; //Fundo do Silêncio Branco
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); //Pinta o fundo
 
-        // Desenha as plataformas
-        this.physics.drawPlatforms(this.ctx);
+        // 1. CÂMERA DO MUNDO (COM ZOOM)
+        this.ctx.save();
 
-        // Desenha inimigos de exploração
-        for (const enemy of this.worldEnemies) {
-            if (enemy.active) {
-                enemy.draw(this.ctx);
-            }
+        // AJUSTE DE DISTÂNCIA:
+        // Diminua isso (ex: 1.5, 1.6 ou 1.8) se quiser afastar a câmera da personagem.
+        let zoom = 1.6;
+
+        let focusX = this.canvas.width / 2;
+        let focusY = this.canvas.height / 2;
+
+        if (this.player) {
+            // AJUSTE DE POSIÇÃO NA TELA:
+            // Colocar "+ 150" faz a câmera olhar mais para frente etc,
+            // deixando a personagem mais "para trás" no canto da tela.
+            focusX = this.player.x + 70;
+
+            // Se quiser que ela fique mais embaixo na tela, mudar o -40 para -80 ou -100.
+            focusY = this.player.y - 40;
         }
 
-        if (this.player) this.player.draw(this.ctx); //Desenha o herói atual
+        // Aplica o movimento e o zoom da câmera
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.scale(zoom, zoom);
+        this.ctx.translate(-focusX, -focusY);
 
-        this.ctx.fillStyle = 'black'; //Cor das letras
-        this.ctx.textAlign = 'left'; //Alinhamento à esquerda
-        this.ctx.font = 'bold 20px Arial'; //Fonte do status
-        this.ctx.fillText(`Herói: ${this.selectedCharacter.name}`, 20, 40); //Nome do herói
-        this.ctx.fillText(`Setor: Caminho de Vidro e Ossos`, 20, 70); //Localização
+        // Desenha o Fundo (Preenchimento gigante para cobrir o zoom)
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.fillRect(focusX - 2000, focusY - 2000, 4000, 4000);
+
+        // Desenha as plataformas e Inimigos
+        this.physics.drawPlatforms(this.ctx);
+        for (const enemy of this.worldEnemies) {
+            if (enemy.active) enemy.draw(this.ctx);
+        }
+
+        // Desenha o herói
+        if (this.player) this.player.draw(this.ctx);
+
+        this.ctx.restore(); // DESLIGA A CÂMERA AQUI (O Combate e a Interface estão a salvo)
+
+        // 2. INTERFACE (HUD - Fica parada na tela sem zoom)
+        this.ctx.fillStyle = 'black';
+        this.ctx.textAlign = 'left';
+        this.ctx.font = 'bold 20px Arial';
+        this.ctx.fillText(`Herói: ${this.selectedCharacter.name}`, 20, 40);
+        this.ctx.fillText(`Setor: Caminho de Vidro e Ossos`, 20, 70);
         this.ctx.fillText(`Fragmentos: ${this.memoryFragments}`, 20, 100);
         this.ctx.font = '16px Arial';
         this.ctx.fillText('Pressione I para abrir o inventário.', 20, 130);
 
+        // 3. TRANSIÇÃO PARA A BATALHA (Apenas escurece a tela)
         if (this.combatEnter.active) {
-            this.ctx.fillStyle = 'rgba(255, 0, 0, 0.65)';
+            const p = Math.min(this.combatEnter.progress / this.combatEnter.duration, 1);
+
+            // Fundo escuro
+            this.ctx.fillStyle = `rgba(0, 0, 0, ${0.8 * p})`;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.fillStyle = '#FFFFFF';
-            this.ctx.font = 'bold 24px Arial';
-            this.ctx.fillText('Iniciando batalha!', this.canvas.width / 2 - 250, 180);
+
+            // Texto de alerta (Protegido por save/restore para não vazar a formatação)
+            this.ctx.save();
+            this.ctx.fillStyle = `rgba(255, 255, 255, ${p})`;
+            this.ctx.textAlign = 'center';
+            this.ctx.font = 'bold 40px Arial';
+            this.ctx.fillText('INICIANDO BATALHA!', this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.restore();
         }
     }
 
     scheduleReturnToExploration() {
-        // Aguarda um momento após o fim da batalha antes de retornar ao modo exploração
         if (this.battleEndTimeout) {
             clearTimeout(this.battleEndTimeout);
         }
         this.battleEndTimeout = setTimeout(() => {
             if (this.cardSystem && this.cardSystem.winner === 'player' && this.pendingCombatEnemy) {
-                this.pendingCombatEnemy.active = false; // Inimigo foi derrotado
+                this.pendingCombatEnemy.active = false;
             }
             this.pendingCombatEnemy = null;
-            this.gameState = 'EXPLORATION'; // Volta ao mundo de exploração
+            this.gameState = 'EXPLORATION';
             this.battleEndTimeout = null;
         }, 1200);
     }
@@ -380,15 +398,15 @@ export class Engine {
         }
     }
 
-    async init() { this.start(); } //Inicia o loop
+    async init() { this.start(); }
 
-    start() { requestAnimationFrame(this.loop.bind(this)); } //Inicia animação
+    start() { requestAnimationFrame(this.loop.bind(this)); }
 
     loop(timestamp) {
-        const deltaTime = timestamp - this.lastTime; //Mede o tempo
-        this.lastTime = timestamp; //Atualiza tempo
-        this.update(deltaTime); //Lógica
-        this.draw(); //Desenho
-        requestAnimationFrame(this.loop.bind(this)); //Próximo frame
+        const deltaTime = timestamp - this.lastTime;
+        this.lastTime = timestamp;
+        this.update(deltaTime);
+        this.draw();
+        requestAnimationFrame(this.loop.bind(this));
     }
 }

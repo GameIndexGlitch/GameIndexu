@@ -6,55 +6,72 @@ export class InventoryScene {
         this.x = (1280 - this.width) / 2;
         this.y = (720 - this.height) / 2;
 
-        this.portraitBox = { x: this.x + 30, y: this.y + 90, width: 220, height: 260 };
+        // Caixa do portrait (Rosto do personagem na esquerda)
+        this.portraitBox = { x: this.x + 50, y: this.y + 90, width: 200, height: 200 };
+
+        // NOVA GRADE DO INVENTÁRIO (Quadrados Maiores)
         this.grid = {
-            cols: 5,
-            rows: 4,
-            slotSize: 64,
-            gap: 24,
-            x: this.x + (this.width - (4 * 64 + 3 * 24)) / 2,
+            cols: 4, // Menos itens por fileira (antes eram 5)
+            rows: 5,
+            slotSize: 90, // Quadrados bem maiores (antes era 64)
+            gap: 20,
+            x: this.x + 360, // Posicionado na direita da tela
             y: this.y + 90
         };
 
-        const equipmentY = this.grid.y + this.grid.rows * (this.grid.slotSize + this.grid.gap) + 26;
-        const equipmentWidth = 3 * 160 + 2 * 20;
-        const equipmentStartX = this.x + (this.width - equipmentWidth) / 2;
+        // SLOTS DE EQUIPAR (Menores e debaixo do Portrait)
+        const eqSize = 75; // Tamanho dos quadrados de equipamento
+        const eqGap = 15;
+        // Centraliza os 3 quadrados embaixo do portrait
+        const eqTotalWidth = (3 * eqSize) + (2 * eqGap);
+        const eqStartX = this.portraitBox.x + (this.portraitBox.width - eqTotalWidth) / 2;
+        const eqStartY = this.y + 380; // Posição Y logo abaixo do nome do personagem
+
         this.equipmentSlots = [
-            { key: 'weapon', label: 'Arma', x: equipmentStartX, y: equipmentY, width: 160, height: 160 },
-            { key: 'armor', label: 'Armadura', x: equipmentStartX + 180, y: equipmentY, width: 160, height: 160 },
-            { key: 'relic', label: 'Relíquia', x: equipmentStartX + 360, y: equipmentY, width: 160, height: 160 }
+            { key: 'weapon', label: 'Arma', x: eqStartX, y: eqStartY, width: eqSize, height: eqSize },
+            { key: 'armor', label: 'Armad.', x: eqStartX + eqSize + eqGap, y: eqStartY, width: eqSize, height: eqSize },
+            { key: 'relic', label: 'Relíq.', x: eqStartX + 2 * (eqSize + eqGap), y: eqStartY, width: eqSize, height: eqSize }
         ];
 
         this.portraitImage = null;
         this.portraitImageLoaded = false;
         this.portraitImagePath = null;
+
+        // Fundo do inventário (imagem)
+        this.bgImage = new Image();
+        this.bgImage.loaded = false;
+        this.bgImage.src = './assets/sprites/UI/inventario_bg.png';
+        this.bgImage.onload = () => { this.bgImage.loaded = true; };
     }
 
     draw(ctx) {
-        // Fundo escuro e janela centralizada
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        // Fundo escuro semi-transparente cobrindo a tela toda
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(0, 0, this.engine.canvas.width, this.engine.canvas.height);
 
-        ctx.fillStyle = '#161820';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
+        // Fundo do inventário
+        if (this.bgImage && this.bgImage.loaded) {
+            ctx.drawImage(this.bgImage, this.x, this.y, this.width, this.height);
+        } else {
+            ctx.fillStyle = 'rgba(22, 24, 32, 0.95)';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(this.x, this.y, this.width, this.height);
+        }
 
+        // Textos superiores
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '26px Arial';
+        ctx.font = 'bold 26px Arial';
         ctx.textAlign = 'left';
-        ctx.fillText('Inventário', this.x + 24, this.y + 36);
+        ctx.fillText('Inventário', this.x + 40, this.y + 40);
+
         ctx.font = '16px Arial';
-        ctx.fillText(`Fragmentos: ${this.engine.memoryFragments}`, this.x + 24, this.y + 62);
-        ctx.fillText('Pressione i para fechar.', this.x + 24, this.y + 84);
+        ctx.fillText(`Fragmentos: ${this.engine.memoryFragments}`, this.x + 40, this.y + 65);
+        ctx.fillStyle = '#CCCCCC';
+        ctx.fillText('Pressione I para fechar.', this.x + 40, this.y + 85);
 
-        // Frame do portrait
-        ctx.fillStyle = '#22222D';
-        ctx.fillRect(this.portraitBox.x, this.portraitBox.y, this.portraitBox.width, this.portraitBox.height);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.strokeRect(this.portraitBox.x, this.portraitBox.y, this.portraitBox.width, this.portraitBox.height);
-
+        // DESENHANDO O PORTRAIT (ROSTO) E TEXTOS
         this.updatePortraitImage();
 
         if (this.portraitImageLoaded && this.portraitImage) {
@@ -69,27 +86,71 @@ export class InventoryScene {
             ctx.fillStyle = this.engine.selectedCharacter?.color || '#444';
             ctx.fillRect(this.portraitBox.x, this.portraitBox.y, this.portraitBox.width, this.portraitBox.height);
             ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 24px Arial';
+            ctx.font = '18px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(
-                this.engine.selectedCharacter?.name ? this.engine.selectedCharacter.name.split(' ')[0] : '???',
-                this.portraitBox.x + this.portraitBox.width / 2,
-                this.portraitBox.y + this.portraitBox.height / 2
-            );
+            ctx.fillText('Sem Arte', this.portraitBox.x + this.portraitBox.width / 2, this.portraitBox.y + this.portraitBox.height / 2);
             ctx.textAlign = 'left';
         }
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.strokeRect(this.portraitBox.x, this.portraitBox.y, this.portraitBox.width, this.portraitBox.height);
 
+        // Nome e Classe do Personagem
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '18px Arial';
+        ctx.font = 'bold 20px Arial';
         const heroName = this.engine.selectedCharacter?.name || 'Desconhecido';
         const heroClass = this.engine.selectedCharacter?.class || 'Sem classe';
         ctx.textAlign = 'center';
         ctx.fillText(heroName, this.portraitBox.x + this.portraitBox.width / 2, this.portraitBox.y + this.portraitBox.height + 30);
         ctx.font = '14px Arial';
-        ctx.fillText(heroClass, this.portraitBox.x + this.portraitBox.width / 2, this.portraitBox.y + this.portraitBox.height + 54);
-        ctx.textAlign = 'left';
+        ctx.fillStyle = '#AAAAAA';
+        ctx.fillText(heroClass, this.portraitBox.x + this.portraitBox.width / 2, this.portraitBox.y + this.portraitBox.height + 50);
 
-        // Grade de itens
+        // SLOTS DE EQUIPAMENTO (Os 3 quadrados pequenos)
+        let detailsY = this.equipmentSlots[0].y + this.equipmentSlots[0].height + 25;
+
+        this.equipmentSlots.forEach((slot) => {
+            // Desenha a caixinha do equipamento
+            ctx.fillStyle = 'rgba(32, 32, 53, 0.8)';
+            ctx.fillRect(slot.x, slot.y, slot.width, slot.height);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.strokeRect(slot.x, slot.y, slot.width, slot.height);
+
+            // Label em cima da caixinha (ex: Arma, Armad.)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(slot.label, slot.x + slot.width / 2, slot.y + 5);
+
+            const equipped = this.engine.equipment[slot.key];
+            if (equipped) {
+                // Desenha a cor do item dentro da caixinha
+                ctx.fillStyle = '#8D9EFF';
+                ctx.fillRect(slot.x + 10, slot.y + 22, slot.width - 20, slot.height - 32);
+
+                ctx.fillStyle = '#000000';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 10px Arial';
+                // Mostra só o comecinho do nome dentro do quadrado pequeno
+                ctx.fillText(equipped.name.substring(0, 7) + '..', slot.x + slot.width / 2, slot.y + 22 + (slot.height - 32) / 2);
+
+                // Lista o nome completo do item lá embaixo para o jogador ler
+                ctx.fillStyle = '#8D9EFF';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(`[${slot.label}] ${equipped.name}`, this.portraitBox.x + this.portraitBox.width / 2, detailsY);
+                detailsY += 20;
+            } else {
+                ctx.fillStyle = '#AAAAAA';
+                ctx.font = '12px Arial';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('vazio', slot.x + slot.width / 2, slot.y + slot.height / 2 + 5);
+            }
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+        });
+
+        // GRADE DE ITENS GERAIS (Quadrados Grandes)
         for (let row = 0; row < this.grid.rows; row += 1) {
             for (let col = 0; col < this.grid.cols; col += 1) {
                 const slotX = this.grid.x + col * (this.grid.slotSize + this.grid.gap);
@@ -97,62 +158,36 @@ export class InventoryScene {
                 const slotIndex = row * this.grid.cols + col;
                 const item = this.engine.inventory[slotIndex];
 
-                ctx.fillStyle = '#202035';
+                ctx.fillStyle = 'rgba(32, 32, 53, 0.8)';
                 ctx.fillRect(slotX, slotY, this.grid.slotSize, this.grid.slotSize);
                 ctx.strokeStyle = '#555577';
                 ctx.strokeRect(slotX, slotY, this.grid.slotSize, this.grid.slotSize);
 
                 if (item) {
                     ctx.fillStyle = '#8D9EFF';
-                    ctx.fillRect(slotX + 4, slotY + 4, this.grid.slotSize - 8, this.grid.slotSize - 8);
+                    ctx.fillRect(slotX + 5, slotY + 5, this.grid.slotSize - 10, this.grid.slotSize - 10);
+
                     ctx.fillStyle = '#000000';
                     ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.fillText(item.name, slotX + this.grid.slotSize / 2, slotY + 12, this.grid.slotSize - 12);
-                    ctx.font = '11px Arial';
-                    ctx.fillText(item.type.toUpperCase(), slotX + this.grid.slotSize / 2, slotY + 32, this.grid.slotSize - 12);
+                    ctx.textBaseline = 'middle';
+                    ctx.font = 'bold 13px Arial';
+
+                    // Quebra o nome em duas linhas se for muito grande
+                    const parts = item.name.split(' ');
+                    if (parts.length > 1) {
+                        ctx.fillText(parts[0], slotX + this.grid.slotSize / 2, slotY + 30, this.grid.slotSize - 15);
+                        ctx.fillText(parts[1].substring(0, 10), slotX + this.grid.slotSize / 2, slotY + 45, this.grid.slotSize - 15);
+                    } else {
+                        ctx.fillText(item.name.substring(0, 12), slotX + this.grid.slotSize / 2, slotY + 35, this.grid.slotSize - 15);
+                    }
+
+                    ctx.font = '10px Arial';
+                    ctx.fillText(item.type.toUpperCase(), slotX + this.grid.slotSize / 2, slotY + 65, this.grid.slotSize - 15);
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'alphabetic';
                 }
             }
         }
-
-        // Slots de equipamento
-        this.equipmentSlots.forEach((slot) => {
-            ctx.fillStyle = '#202035';
-            ctx.fillRect(slot.x, slot.y, slot.width, slot.height);
-            ctx.strokeStyle = '#FFFFFF';
-            ctx.strokeRect(slot.x, slot.y, slot.width, slot.height);
-            ctx.fillStyle = '#FFFFFF';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = 'bold 18px Arial';
-            ctx.fillText(slot.label, slot.x + slot.width / 2, slot.y + 24);
-
-            const equipped = this.engine.equipment[slot.key];
-            if (equipped) {
-                ctx.fillStyle = '#8D9EFF';
-                ctx.fillRect(slot.x + 8, slot.y + 44, slot.width - 16, slot.height - 60);
-                ctx.fillStyle = '#000000';
-                ctx.textBaseline = 'top';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(equipped.name, slot.x + slot.width / 2, slot.y + 50, slot.width - 24);
-                ctx.font = '12px Arial';
-                ctx.fillText(equipped.desc, slot.x + slot.width / 2, slot.y + 72, slot.width - 24);
-            } else {
-                ctx.fillStyle = '#AAAAAA';
-                ctx.font = '14px Arial';
-                ctx.fillText('vazio', slot.x + slot.width / 2, slot.y + slot.height / 2);
-            }
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-        });
-
-        // Texto de instruções
-        ctx.fillStyle = '#CCCCCC';
-        ctx.font = '14px Arial';
-        ctx.fillText('Clique em um item de arma/armadura/relíquia para equipar.', this.x + 280, this.y + this.height - 24);
     }
 
     handleInput(mouseX, mouseY) {
@@ -197,7 +232,8 @@ export class InventoryScene {
     }
 
     updatePortraitImage() {
-        const portraitPath = this.engine.selectedCharacter?.portrait;
+        const portraitPath = this.engine.selectedCharacter?.facePortrait;
+
         if (!portraitPath) {
             this.portraitImagePath = null;
             this.portraitImage = null;

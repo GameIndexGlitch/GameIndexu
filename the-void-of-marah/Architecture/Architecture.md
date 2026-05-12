@@ -23,7 +23,8 @@ the-void-of-marah/
 │   │   ├── bosses/          # Os 2 chefes de cada fase + Boss Final.
 │   │   ├── keys/            # Chave para desbloquear a próxima fase.
 │   │   └── cutscenes/       # Cenas desenhadas para a transição de fases.
-│   │   └── TitleScreenUI/
+│   │   └── SelectScreenUI/  # Tela de seleção de personagem com a Maya e o Zeck.
+│   │   └── TitleScreenUI/   # Tela inicial com start e volume.
 │   │
 │   └── sounds/              # (Opcional, mas recomendado) Músicas e efeitos sonoros.
 │

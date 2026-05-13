@@ -4,19 +4,24 @@ kaboom({
   letterbox: true,
 });
 
+// Carregamento de Assets
 loadSprite("fundo", "assets/drawings/titleScreenUI/background/TelaInicial.png");
-loadSprite(
-  "botao_start",
-  "assets/drawings/titleScreenUI/buttons/btn_start.png",
-);
+loadSprite("botao_start", "assets/drawings/titleScreenUI/buttons/btn_start.png");
 
+// Cena Principal: Menu
 scene("menu", () => {
   let volumeValor = 10;
   let mutado = false;
   let volumeAntesDeMutar = 10;
 
-  add([sprite("fundo"), pos(width() / 2, height() / 2), anchor("center")]);
+  // Fundo
+  add([
+    sprite("fundo"), 
+    pos(width() / 2, height() / 2), 
+    anchor("center")
+  ]);
 
+  // Botão Start
   const startBtn = add([
     sprite("botao_start"),
     pos(370, 600),
@@ -24,6 +29,7 @@ scene("menu", () => {
     area(),
   ]);
 
+  // Elementos da UI de Volume
   const labelVolume = add([
     text(volumeValor.toString(), { size: 30 }),
     pos(390, 520),
@@ -51,22 +57,50 @@ scene("menu", () => {
     area(),
   ]);
 
+  // Função para atualizar visual e som
   function atualizarSom() {
     labelVolume.text = volumeValor.toString();
     volume(volumeValor / 10);
     btnMudo.text = mutado || volumeValor === 0 ? "🔇" : "🔊";
   }
 
-  onMousePress("left", () => {
-    // Clique no Start
+  // Interação: Segurar o Botão Start
+  onMouseDown("left", () => {
     if (startBtn.isHovering()) {
       startBtn.scale = vec2(0.9);
-      wait(0.1, () => {
-        startBtn.scale = vec2(1);
-        console.log("Jogo Iniciado!");
+    }
+  });
+
+  // Interação: Soltar o Botão Start (com Fade)
+  onMouseRelease("left", () => {
+    startBtn.scale = vec2(1);
+
+    if (startBtn.isHovering()) {
+      // Criar o efeito de Fade Out (Tela ficando branca)
+      const flash = add([
+        rect(width(), height()),
+        pos(0, 0),
+        color(255, 255, 255),
+        opacity(0),
+        fixed(),
+        z(100),
+      ]);
+
+      tween(
+        0,
+        1,
+        0.5,
+        (v) => (flash.opacity = v),
+        easings.easeInQuad
+      ).then(() => {
+        go("selecao"); // Muda para a próxima tela
       });
     }
+  });
 
+  // Interação: Cliques nos botões de Volume
+  onMousePress("left", () => {
+    // Botão Mais (+)
     if (btnMais.isHovering()) {
       if (mutado) {
         mutado = false;
@@ -76,6 +110,7 @@ scene("menu", () => {
       atualizarSom();
     }
 
+    // Botão Menos (-)
     if (btnMenos.isHovering()) {
       if (mutado) {
         mutado = false;
@@ -85,6 +120,7 @@ scene("menu", () => {
       atualizarSom();
     }
 
+    // Botão Mudo
     if (btnMudo.isHovering()) {
       if (!mutado) {
         volumeAntesDeMutar = volumeValor;
@@ -98,18 +134,16 @@ scene("menu", () => {
     }
   });
 
+  // Cursor dinâmico
   onUpdate(() => {
-    if (
+    const hovering =
       startBtn.isHovering() ||
       btnMais.isHovering() ||
       btnMenos.isHovering() ||
-      btnMudo.isHovering()
-    ) {
-      setCursor("pointer");
-    } else {
-      setCursor("default");
-    }
+      btnMudo.isHovering();
+    setCursor(hovering ? "pointer" : "default");
   });
 });
 
+// Iniciar o jogo
 go("menu");

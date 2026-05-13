@@ -1,149 +1,109 @@
-kaboom({
-  width: 1600,
-  height: 900,
-  letterbox: true,
-});
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-// Carregamento de Assets
-loadSprite("fundo", "assets/drawings/titleScreenUI/background/TelaInicial.png");
-loadSprite("botao_start", "assets/drawings/titleScreenUI/buttons/btn_start.png");
+// Resolução lógica fixa para manter a proporção da arte
+canvas.width = 1920;
+canvas.height = 1080;
 
-// Cena Principal: Menu
-scene("menu", () => {
-  let volumeValor = 10;
-  let mutado = false;
-  let volumeAntesDeMutar = 10;
+let mousePos = { x: 0, y: 0 };
+let state = {
+  cena: "menu",
+  volume: 10,
+  volumeAntesDeMutar: 10,
+  mutado: false,
+  transicao: 0,
+  emTransicao: false,
+  proximaCena: "",
+};
 
-  // Fundo
-  add([
-    sprite("fundo"), 
-    pos(width() / 2, height() / 2), 
-    anchor("center")
-  ]);
+const assets = {
+  fundo: new Image(),
+  btnStart: new Image(),
+  btnCreditos: new Image(),
+};
 
-  // Botão Start
-  const startBtn = add([
-    sprite("botao_start"),
-    pos(370, 600),
-    anchor("center"),
-    area(),
-  ]);
+// Carregamento dos Assets
+assets.fundo.src = "assets/drawings/TitleScreenUI/background/TelaInicial.png";
+assets.btnStart.src = "assets/drawings/TitleScreenUI/buttons/btn_start.png";
+assets.btnCreditos.src =
+  "assets/drawings/TitleScreenUI/buttons/btn_creditos.png";
 
-  // Elementos da UI de Volume
-  const labelVolume = add([
-    text(volumeValor.toString(), { size: 30 }),
-    pos(390, 520),
-    anchor("center"),
-  ]);
+function loop() {
+  // Limpa o canvas e garante Pixel Art nítida
+  ctx.clearRect(0, 0, 1920, 1080);
+  ctx.imageSmoothingEnabled = false;
 
-  const btnMenos = add([
-    text("-", { size: 40 }),
-    pos(360, 520),
-    anchor("center"),
-    area(),
-  ]);
-
-  const btnMais = add([
-    text("+", { size: 40 }),
-    pos(430, 520),
-    anchor("center"),
-    area(),
-  ]);
-
-  const btnMudo = add([
-    text("🔊", { size: 30 }),
-    pos(325, 520),
-    anchor("center"),
-    area(),
-  ]);
-
-  // Função para atualizar visual e som
-  function atualizarSom() {
-    labelVolume.text = volumeValor.toString();
-    volume(volumeValor / 10);
-    btnMudo.text = mutado || volumeValor === 0 ? "🔇" : "🔊";
+  // Gerenciador de Cenas
+  if (state.cena === "menu") {
+    renderMenu(ctx, assets, state, mousePos.x, mousePos.y);
+  } else if (state.cena === "selecao") {
+    renderSelecao(ctx);
+  } else if (state.cena === "creditos") {
+    renderCreditos(ctx);
   }
 
-  // Interação: Segurar o Botão Start
-  onMouseDown("left", () => {
-    if (startBtn.isHovering()) {
-      startBtn.scale = vec2(0.9);
+  // Lógica de Transição (Flash Branco)
+  if (state.emTransicao) {
+    state.transicao += 0.05;
+    if (state.transicao >= 1) {
+      state.cena = state.proximaCena;
+      state.emTransicao = false;
     }
-  });
+  } else if (state.transicao > 0) {
+    state.transicao -= 0.05;
+  }
 
-  // Interação: Soltar o Botão Start (com Fade)
-  onMouseRelease("left", () => {
-    startBtn.scale = vec2(1);
+  if (state.transicao > 0) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${state.transicao})`;
+    ctx.fillRect(0, 0, 1920, 1080);
+  }
 
-    if (startBtn.isHovering()) {
-      // Criar o efeito de Fade Out (Tela ficando branca)
-      const flash = add([
-        rect(width(), height()),
-        pos(0, 0),
-        color(255, 255, 255),
-        opacity(0),
-        fixed(),
-        z(100),
-      ]);
+  requestAnimationFrame(loop);
+}
 
-      tween(
-        0,
-        1,
-        0.5,
-        (v) => (flash.opacity = v),
-        easings.easeInQuad
-      ).then(() => {
-        go("selecao"); // Muda para a próxima tela
-      });
-    }
-  });
-
-  // Interação: Cliques nos botões de Volume
-  onMousePress("left", () => {
-    // Botão Mais (+)
-    if (btnMais.isHovering()) {
-      if (mutado) {
-        mutado = false;
-        volumeValor = volumeAntesDeMutar;
-      }
-      if (volumeValor < 10) volumeValor++;
-      atualizarSom();
-    }
-
-    // Botão Menos (-)
-    if (btnMenos.isHovering()) {
-      if (mutado) {
-        mutado = false;
-        volumeValor = volumeAntesDeMutar;
-      }
-      if (volumeValor > 0) volumeValor--;
-      atualizarSom();
-    }
-
-    // Botão Mudo
-    if (btnMudo.isHovering()) {
-      if (!mutado) {
-        volumeAntesDeMutar = volumeValor;
-        volumeValor = 0;
-        mutado = true;
-      } else {
-        volumeValor = volumeAntesDeMutar;
-        mutado = false;
-      }
-      atualizarSom();
-    }
-  });
-
-  // Cursor dinâmico
-  onUpdate(() => {
-    const hovering =
-      startBtn.isHovering() ||
-      btnMais.isHovering() ||
-      btnMenos.isHovering() ||
-      btnMudo.isHovering();
-    setCursor(hovering ? "pointer" : "default");
-  });
+// Monitoramento do Mouse (Convertendo para 1920x1080)
+canvas.addEventListener("mousemove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mousePos.x = (e.clientX - rect.left) * (1920 / rect.width);
+  mousePos.y = (e.clientY - rect.top) * (1080 / rect.height);
 });
 
-// Iniciar o jogo
-go("menu");
+// Processamento de Cliques
+canvas.addEventListener("mousedown", (e) => {
+  if (state.emTransicao) return;
+
+  const acao = checkMenuClick(mousePos.x, mousePos.y, assets);
+
+  if (acao === "iniciar") {
+    state.proximaCena = "selecao";
+    state.emTransicao = true;
+  } else if (acao === "creditos") {
+    state.proximaCena = "creditos";
+    state.emTransicao = true;
+  } else if (acao === "mudar_mudo") {
+    if (!state.mutado) {
+      state.volumeAntesDeMutar = state.volume;
+      state.volume = 0;
+      state.mutado = true;
+    } else {
+      state.volume = state.volumeAntesDeMutar;
+      state.mutado = false;
+    }
+  } else if (acao === "aumentar") {
+    if (state.volume < 10) state.volume++;
+    state.mutado = false;
+  } else if (acao === "diminuir") {
+    if (state.volume > 0) state.volume--;
+    if (state.volume === 0) state.mutado = true;
+  }
+});
+
+// Atalho para voltar ao menu
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.cena !== "menu") {
+    state.proximaCena = "menu";
+    state.emTransicao = true;
+  }
+});
+
+assets.fundo.onload = () => loop();

@@ -36,6 +36,8 @@ the-void-of-marah/
 ├── scenes/              # As diferentes telas do jogo
 │   ├── menu.js          # Tela inicial (Volume, Iniciar, Seleção de 2 personagens, História).
 │   ├── board.js         # Lógica do Tabuleiro (casas normais, gacha, checkpoint).
+│   ├── creditos.js      # tela de créditos do jogo (onde ficarão os nomes dos integrantes e funções).
+│   ├── selecao.js       # Tela de seleção de personagens lógica.
 │   ├── combat.js        # A tela de RPG de turno com as cartas e distorção de imagem.
 │   └── cutscene.js      # Gerencia a exibição das artes de história ao passar de cena.
 │

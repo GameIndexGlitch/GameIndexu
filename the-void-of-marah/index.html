@@ -1,15 +1,31 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>The Void of Marah</title>
     <style>
-        body { margin: 0; overflow: hidden; background: black; }
+      body {
+        margin: 0;
+        background: black;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        object-fit: fill;
+        /* Mantém a Pixel Art nítida */
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
     </style>
-</head>
-<body>
-    <script src="https://unpkg.com/kaboom@3000.1.17/dist/kaboom.js"></script>
-
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+    <!-- Scripts do Jogo -->
+    <script src="js/scenes/menu.js"></script>
+    <script src="js/scenes/selecao.js"></script>
+    <script src="js/scenes/creditos.js"></script>
     <script src="js/main.js"></script>
-</body>
+  </body>
 </html>

@@ -84,8 +84,9 @@ function loop() {
   } else if (state.cena === "creditos") {
     renderCreditos(ctx);
   } else if (state.cena === "jogo") {
-    // Chama a função lógica do tabuleiro (definida em board.js)
     renderBoard(ctx, assets, state, mousePos.x, mousePos.y);
+  } else if (state.cena === "combat") {
+    renderCombat(ctx, assets, state, mousePos.x, mousePos.y);
   }
 
   // Processamento do Sistema de Transição

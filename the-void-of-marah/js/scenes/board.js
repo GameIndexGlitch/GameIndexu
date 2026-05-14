@@ -244,8 +244,25 @@ function processarMovimentoBoard(state, mapa) {
 
 function aplicarEfeitoDaCasa(casa) {
   if (casa.tipo === CASAS.GACHA) {
+    // Aqui pode entrar a lógica do gacha.
   } else if (casa.tipo === CASAS.COMBAT) {
+    if (stateGlobal) {
+      stateGlobal.proximaCena = "combat";
+      stateGlobal.emTransicao = true;
+      stateGlobal.combat = null; // força reinicializar o combate na próxima cena
+      stateGlobal.combatBoss = false;
+    }
+  } else if (casa.tipo === CASAS.BOSS) {
+    if (stateGlobal) {
+      stateGlobal.proximaCena = "combat";
+      stateGlobal.emTransicao = true;
+      stateGlobal.combat = null;
+      stateGlobal.combatBoss = true;
+    }
   } else if (casa.tipo === CASAS.RECOVERY) {
+    if (stateGlobal && stateGlobal.stats) {
+      stateGlobal.stats.vida = stateGlobal.stats.vidaMax;
+    }
   }
 }
 

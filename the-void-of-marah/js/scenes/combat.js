@@ -1,1 +1,237 @@
-.
+const COMBAT_BUTTON = {
+  x: 1340,
+  y: 905,
+  width: 400,
+  height: 120,
+};
+
+let combateStateGlobal = null;
+let combateMouseXGlobal = 0;
+let combateMouseYGlobal = 0;
+
+const ENEMIGOS_COMBAT = [
+  { name: "Slime", hp: 8, attack: 2, defense: 1 },
+  { name: "Goblin", hp: 12, attack: 4, defense: 2 },
+  { name: "Orc", hp: 20, attack: 5, defense: 3 },
+  { name: "Wraith", hp: 16, attack: 5, defense: 1 },
+];
+
+function renderCombat(ctx, assets, state, mouseX, mouseY) {
+  combateStateGlobal = state;
+  combateMouseXGlobal = mouseX;
+  combateMouseYGlobal = mouseY;
+
+  if (!state.combat) {
+    iniciarCombate(state);
+  }
+
+  desenharCenarioCombate(ctx, state);
+  desenharHUDCombate(ctx, state);
+  desenharBotaoAtaque(ctx, state);
+}
+
+function iniciarCombate(state) {
+  const inimigo = state.combatBoss
+    ? { name: "Shadow Lord", hp: 40, attack: 8, defense: 4 }
+    : ENEMIGOS_COMBAT[Math.floor(Math.random() * ENEMIGOS_COMBAT.length)];
+
+  state.combat = {
+    enemyName: inimigo.name,
+    enemyHP: inimigo.hp,
+    enemyMaxHP: inimigo.hp,
+    enemyAttack: inimigo.attack,
+    enemyDefense: inimigo.defense,
+    playerHP: state.stats.vida,
+    playerMaxHP: state.stats.vidaMax,
+    estado: "playerTurn",
+    mensagem: state.combatBoss
+      ? `O ${inimigo.name} apareceu! Vença o boss para concluir o desafio.`
+      : `Um ${inimigo.name} apareceu!`,
+    finalizado: false,
+    venceu: false,
+  };
+  state.combatBoss = false;
+}
+
+function desenharCenarioCombate(ctx, state) {
+  ctx.fillStyle = "#a4c3f2";
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  ctx.fillStyle = "#e0e6f4";
+  ctx.fillRect(80, 80, 1760, 920);
+
+  ctx.fillStyle = "#1f1f2b";
+  ctx.fillRect(100, 120, 1720, 220);
+  ctx.fillRect(100, 520, 1720, 220);
+  ctx.fillRect(100, 820, 1720, 200);
+
+  ctx.fillStyle = "white";
+  ctx.font = "bold 34px sans-serif";
+  ctx.fillText("INIMIGO", 140, 170);
+  ctx.fillText("JOGADOR", 140, 570);
+}
+
+function desenharHUDCombate(ctx, state) {
+  const combat = state.combat;
+
+  ctx.font = "bold 52px monospace";
+  ctx.fillStyle = "white";
+  ctx.fillText(`${combat.enemyName}`, 140, 230);
+  ctx.fillText(state.personagemSelecionado?.toUpperCase() || "PLAYER", 140, 630);
+
+  desenharBarraVida(ctx, 140, 260, 900, 40, combat.enemyHP, combat.enemyMaxHP, "#77dd77");
+  desenharBarraVida(ctx, 140, 660, 900, 40, combat.playerHP, combat.playerMaxHP, "#66b3ff");
+
+  ctx.font = "24px sans-serif";
+  ctx.fillStyle = "white";
+  ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, 140, 315);
+  ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, 140, 715);
+
+  ctx.font = "28px sans-serif";
+  ctx.fillStyle = "#f8f4e3";
+  wrapText(ctx, combat.mensagem, 140, 875, 1650, 36);
+}
+
+function desenharBarraVida(ctx, x, y, width, height, current, max, color) {
+  const ratio = Math.max(0, Math.min(1, current / max));
+  ctx.fillStyle = "rgba(255, 255, 255, 0.18)";
+  ctx.fillRect(x, y, width, height);
+
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, width * ratio, height);
+
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x, y, width, height);
+}
+
+function desenharBotaoAtaque(ctx, state) {
+  const combat = state.combat;
+  const isHover =
+    combateMouseXGlobal >= COMBAT_BUTTON.x &&
+    combateMouseXGlobal <= COMBAT_BUTTON.x + COMBAT_BUTTON.width &&
+    combateMouseYGlobal >= COMBAT_BUTTON.y &&
+    combateMouseYGlobal <= COMBAT_BUTTON.y + COMBAT_BUTTON.height;
+
+  ctx.fillStyle = combat.finalizado ? "#666" : isHover ? "#ffcc33" : "#ffbb00";
+  ctx.fillRect(COMBAT_BUTTON.x, COMBAT_BUTTON.y, COMBAT_BUTTON.width, COMBAT_BUTTON.height);
+
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(COMBAT_BUTTON.x, COMBAT_BUTTON.y, COMBAT_BUTTON.width, COMBAT_BUTTON.height);
+
+  ctx.fillStyle = "#1f1f2b";
+  ctx.font = "bold 46px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(
+    combat.finalizado ? "CONTINUAR" : "ATACAR",
+    COMBAT_BUTTON.x + COMBAT_BUTTON.width / 2,
+    COMBAT_BUTTON.y + COMBAT_BUTTON.height / 2 + 16,
+  );
+  ctx.textAlign = "start";
+}
+
+function executarAtaque(state) {
+  const combat = state.combat;
+  if (!combat || combat.finalizado) return;
+
+  const danoJogador = Math.max(
+    1,
+    state.stats.ataque + Math.floor(Math.random() * 3) - combat.enemyDefense,
+  );
+
+  combat.enemyHP -= danoJogador;
+  combat.mensagem = `Você atacou ${combat.enemyName} e causou ${danoJogador} de dano.`;
+
+  if (combat.enemyHP <= 0) {
+    finalizarCombate(state, true);
+    return;
+  }
+
+  const danoInimigo = Math.max(
+    1,
+    combat.enemyAttack + Math.floor(Math.random() * 2) - state.stats.defesa,
+  );
+
+  state.stats.vida = Math.max(0, state.stats.vida - danoInimigo);
+  combat.playerHP = state.stats.vida;
+  combat.mensagem += `\n${combat.enemyName} contra-atacou e causou ${danoInimigo}.`;
+
+  if (combat.playerHP <= 0) {
+    finalizarCombate(state, false);
+  }
+}
+
+function finalizarCombate(state, venceu) {
+  const combat = state.combat;
+  combat.finalizado = true;
+  combat.venceu = venceu;
+  if (venceu) {
+    combat.mensagem = `${combat.enemyName} foi derrotado! Toque em CONTINUAR para voltar ao tabuleiro.`;
+  } else {
+    combat.mensagem = `Você foi derrotado... Toque em CONTINUAR para reiniciar no início do tabuleiro.`;
+  }
+}
+
+function continuarDepoisDoCombate(state) {
+  const combat = state.combat;
+  if (!combat || !combat.finalizado) return;
+
+  if (combat.venceu) {
+    state.proximaCena = "jogo";
+  } else {
+    // Reset game on defeat: restore HP and return to board start
+    state.stats.vida = state.stats.vidaMax;
+    state.casaAtual = 0;
+    state.opcoesDeCaminho = [];
+    controleMovimento.passosRestantes = 0;
+    controleMovimento.esperandoEscolha = false;
+    controleMovimento.dadoAtivo = false;
+    controleMovimento.animandoPulo = false;
+    controleMovimento.puloProgresso = 0;
+    controleMovimento.casaOrigem = null;
+    controleMovimento.casaDestino = null;
+    state.proximaCena = "jogo";
+  }
+  state.emTransicao = true;
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+    const testWidth = metrics.width;
+    if (testWidth > maxWidth && n > 0) {
+      ctx.fillText(line, x, y);
+      line = words[n] + " ";
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, y);
+}
+
+window.addEventListener("mousedown", () => {
+  if (!combateStateGlobal || combateStateGlobal.cena !== "combat") return;
+
+  const clickX = combateMouseXGlobal;
+  const clickY = combateMouseYGlobal;
+  const combat = combateStateGlobal.combat;
+
+  if (
+    clickX >= COMBAT_BUTTON.x &&
+    clickX <= COMBAT_BUTTON.x + COMBAT_BUTTON.width &&
+    clickY >= COMBAT_BUTTON.y &&
+    clickY <= COMBAT_BUTTON.y + COMBAT_BUTTON.height
+  ) {
+    if (!combat || combat.finalizado) {
+      continuarDepoisDoCombate(combateStateGlobal);
+    } else {
+      executarAtaque(combateStateGlobal);
+    }
+  }
+});

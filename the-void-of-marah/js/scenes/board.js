@@ -96,6 +96,13 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
 
   desenharConexoes(ctx, MAPA_FLUXO);
 
+  MAPA_FLUXO.casas.forEach((casa) => {
+    let scale = 1.0;
+    if (casa.c === 14) scale = 1.3;
+    if (casa.c === 8 && casa.r === 0) scale = 1.2;
+    desenharSombra(ctx, casa.x, casa.y, scale);
+  });
+
   processarMovimentoBoard(state, MAPA_FLUXO);
 
   MAPA_FLUXO.casas.forEach((casa) => {
@@ -123,11 +130,18 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
     !controleMovimento.dadoAtivo &&
     !controleMovimento.animandoPulo
   ) {
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
     ctx.fillRect(860, 950, 200, 60);
+
     ctx.fillStyle = "black";
     ctx.font = "bold 24px Arial";
-    ctx.fillText("ROLAR DADO", 875, 990);
+    ctx.fillText("ROLAR DADO", 960, 980);
+
+    ctx.restore();
   }
 }
 
@@ -255,6 +269,26 @@ function desenharConexoes(ctx, mapa) {
   ctx.restore();
 }
 
+function desenharSombra(ctx, x, y, scale = 1.0) {
+  const w = LARGURA_PISO * scale;
+  const h = ALTURA_PISO * scale;
+  const dropDist = 45;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+
+  ctx.beginPath();
+  ctx.moveTo(x, y + dropDist - h / 2);
+  ctx.lineTo(x + w / 2, y + dropDist);
+  ctx.lineTo(x, y + dropDist + h / 2);
+  ctx.lineTo(x - w / 2, y + dropDist);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
 function desenharBloco(ctx, x, y, corBase, destaque, scale = 1.0) {
   const w = LARGURA_PISO * scale;
   const h = ALTURA_PISO * scale;
@@ -326,17 +360,26 @@ function renderPersonagem(ctx, assets, state, mapa) {
 }
 
 function renderHUD(ctx, state) {
+  ctx.save();
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
   ctx.fillRect(50, 880, 480, 150);
-  ctx.fillStyle = "white";
-  ctx.font = "bold 32px sans-serif";
-  ctx.fillText(state.personagemSelecionado?.toUpperCase() || "", 80, 930);
 
-  ctx.font = "22px sans-serif";
+  ctx.fillStyle = "white";
+  ctx.font = "bold 36px sans-serif";
+  ctx.fillText(state.personagemSelecionado?.toUpperCase() || "", 80, 910);
+
+  ctx.font = "24px sans-serif";
+
   ctx.fillStyle = "#ff5555";
-  ctx.fillText(`VIDA: ${state.stats.vida}/${state.stats.vidaMax}`, 80, 980);
+  ctx.fillText(`❤ VIDA: ${state.stats.vida}/${state.stats.vidaMax}`, 80, 970);
+
   ctx.fillStyle = "#55ccff";
-  ctx.fillText(`DEFESA: ${state.stats.defesa}`, 300, 980);
+  ctx.fillText(`🛡 DEFESA: ${state.stats.defesa}`, 280, 970);
+
+  ctx.restore();
 }
 
 function escurecerCor(hex, amt) {

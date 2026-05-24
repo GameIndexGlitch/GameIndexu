@@ -10,9 +10,20 @@ function renderCreditos(ctx) {
   ctx.fillText("CRÉDITOS", 1920 / 2, 200);
 
   ctx.font = "40px Arial";
-  ctx.fillText("Arte Desenhada: Ágatha Ariell | Arte Pixel: Rhawan Henrique" , 1920 / 2, 400);
-  ctx.fillText("Programação: Pedro Júlio", 1920 / 2, 500);
+  ctx.fillText("Arte Desenhada: Ágatha Ariell | Arte Pixel: Rhawan Henrique", 1920 / 2, 400);
+  ctx.fillText("Programação: Pedro Júlio, Gabriel Haddad, Thawan Campos, Felipe Eduardo", 1920 / 2, 500);
 
   ctx.font = "25px Arial";
   ctx.fillText("Pressione ESC para voltar ao Menu", 1920 / 2, 900);
 }
+
+window.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  const currentState = window.state;
+  if (!currentState || currentState.cena !== "creditos" || currentState.emTransicao) return;
+
+  event.preventDefault();
+  currentState.proximaCena = "menu";
+  currentState.emTransicao = true;
+});

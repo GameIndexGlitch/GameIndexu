@@ -244,7 +244,11 @@ function processarMovimentoBoard(state, mapa) {
 
 function aplicarEfeitoDaCasa(casa) {
   if (casa.tipo === CASAS.GACHA) {
-    // Aqui pode entrar a lógica do gacha.
+    if (stateGlobal) {
+      stateGlobal.gacha = null;
+      stateGlobal.proximaCena = "gacha";
+      stateGlobal.emTransicao = true;
+    }
   } else if (casa.tipo === CASAS.COMBAT) {
     if (stateGlobal) {
       stateGlobal.proximaCena = "combat";

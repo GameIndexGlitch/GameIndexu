@@ -27,6 +27,7 @@ let state = {
   personagemSelecionado: null, // "maya" ou "zeck"
   casaAtual: 0, // Índice da casa no tabuleiro (0-31)
   fase: 1,
+  gacha: null,
 
   stats: {
     vida: 10,
@@ -35,6 +36,8 @@ let state = {
     ataque: 3,
   },
 };
+
+window.state = state;
 
 /**
  * Carregamento de Assets
@@ -87,6 +90,8 @@ function loop() {
     renderBoard(ctx, assets, state, mousePos.x, mousePos.y);
   } else if (state.cena === "combat") {
     renderCombat(ctx, assets, state, mousePos.x, mousePos.y);
+  } else if (state.cena === "gacha") {
+    renderGacha(ctx, state, mousePos.x, mousePos.y);
   }
 
   // Processamento do Sistema de Transição

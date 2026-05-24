@@ -31,26 +31,7 @@ function renderCombat(ctx, assets, state, mouseX, mouseY) {
 }
 
 function iniciarCombate(state) {
-  const inimigo = state.combatBoss
-    ? { name: "Shadow Lord", hp: 40, attack: 8, defense: 4 }
-    : ENEMIGOS_COMBAT[Math.floor(Math.random() * ENEMIGOS_COMBAT.length)];
-
-  state.combat = {
-    enemyName: inimigo.name,
-    enemyHP: inimigo.hp,
-    enemyMaxHP: inimigo.hp,
-    enemyAttack: inimigo.attack,
-    enemyDefense: inimigo.defense,
-    playerHP: state.stats.vida,
-    playerMaxHP: state.stats.vidaMax,
-    estado: "playerTurn",
-    mensagem: state.combatBoss
-      ? `O ${inimigo.name} apareceu! Vença o boss para concluir o desafio.`
-      : `Um ${inimigo.name} apareceu!`,
-    finalizado: false,
-    venceu: false,
-  };
-  state.combatBoss = false;
+  state.combat = turnManager.createCombatState(state);
 }
 
 function desenharCenarioCombate(ctx, state) {
@@ -132,45 +113,11 @@ function desenharBotaoAtaque(ctx, state) {
 }
 
 function executarAtaque(state) {
-  const combat = state.combat;
-  if (!combat || combat.finalizado) return;
-
-  const danoJogador = Math.max(
-    1,
-    state.stats.ataque + Math.floor(Math.random() * 3) - combat.enemyDefense,
-  );
-
-  combat.enemyHP -= danoJogador;
-  combat.mensagem = `Você atacou ${combat.enemyName} e causou ${danoJogador} de dano.`;
-
-  if (combat.enemyHP <= 0) {
-    finalizarCombate(state, true);
-    return;
-  }
-
-  const danoInimigo = Math.max(
-    1,
-    combat.enemyAttack + Math.floor(Math.random() * 2) - state.stats.defesa,
-  );
-
-  state.stats.vida = Math.max(0, state.stats.vida - danoInimigo);
-  combat.playerHP = state.stats.vida;
-  combat.mensagem += `\n${combat.enemyName} contra-atacou e causou ${danoInimigo}.`;
-
-  if (combat.playerHP <= 0) {
-    finalizarCombate(state, false);
-  }
+  turnManager.handlePlayerAction(state);
 }
 
 function finalizarCombate(state, venceu) {
-  const combat = state.combat;
-  combat.finalizado = true;
-  combat.venceu = venceu;
-  if (venceu) {
-    combat.mensagem = `${combat.enemyName} foi derrotado! Toque em CONTINUAR para voltar ao tabuleiro.`;
-  } else {
-    combat.mensagem = `Você foi derrotado... Toque em CONTINUAR para reiniciar no início do tabuleiro.`;
-  }
+  turnManager.finalizeBattle(state.combat, state, venceu);
 }
 
 function continuarDepoisDoCombate(state) {
@@ -215,11 +162,16 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   ctx.fillText(line, x, y);
 }
 
-window.addEventListener("mousedown", () => {
-  if (!combateStateGlobal || combateStateGlobal.cena !== "combat") return;
+window.addEventListener("mousedown", (event) => {
+  if (!combateStateGlobal || combateStateGlobal.cena !== "combat" || event.button !== 0) return;
 
-  const clickX = combateMouseXGlobal;
-  const clickY = combateMouseYGlobal;
+  const canvas = document.getElementById("gameCanvas");
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const clickX = (event.clientX - rect.left) * (1920 / rect.width);
+  const clickY = (event.clientY - rect.top) * (1080 / rect.height);
+
   const combat = combateStateGlobal.combat;
 
   if (

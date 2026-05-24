@@ -1,1 +1,147 @@
-.
+const TURN_STATES = {
+  PLAYER: "playerTurn",
+  ENEMY: "enemyTurn",
+};
+
+const TURN_ATTACK_BONUSES = {
+  player: { min: 0, max: 2 },
+  enemy: { min: 0, max: 1 },
+};
+
+const ENEMIES_COMBAT = [
+  { name: "Slime", hp: 8, attack: 2, defense: 0 },
+  { name: "Goblin", hp: 12, attack: 4, defense: 2 },
+  { name: "Orc", hp: 18, attack: 5, defense: 3 },
+  { name: "Wraith", hp: 16, attack: 5, defense: 1 },
+];
+
+function getEnemyTemplate(state) {
+  if (state?.combatBoss) {
+    return { name: "Shadow Lord", hp: 25, attack: 8, defense: 4 };
+  }
+
+  const enemyData = ENEMIES_COMBAT[Math.floor(Math.random() * ENEMIES_COMBAT.length)];
+  return {
+    name: enemyData.name,
+    hp: enemyData.hp,
+    attack: enemyData.attack,
+    defense: enemyData.defense,
+  };
+}
+
+function createCombatState(state) {
+  if (!state) {
+    throw new Error("turnManager.createCombatState requer um estado global válido.");
+  }
+
+  const player = new Player("Jogador", state.stats.vidaMax, state.stats.ataque, state.stats.defesa);
+  player.hp = Math.max(1, Math.min(state.stats.vidaMax, state.stats.vida));
+
+  const enemyData = getEnemyTemplate(state);
+  const enemy = new Enemy(enemyData.name, enemyData.hp, enemyData.attack, enemyData.defense);
+
+  const battle = {
+    player,
+    enemy,
+    turn: TURN_STATES.PLAYER,
+    estado: TURN_STATES.PLAYER,
+    mensagem: state?.combatBoss
+      ? `O ${enemy.name} apareceu! Vença o boss para concluir o desafio.`
+      : `Um ${enemy.name} apareceu!`,
+    finalizado: false,
+    venceu: false,
+    enemyName: enemy.name,
+    enemyHP: enemy.hp,
+    enemyMaxHP: enemy.maxHp,
+    enemyAttack: enemy.attack,
+    enemyDefense: enemy.defense,
+    playerHP: player.hp,
+    playerMaxHP: player.maxHp,
+  };
+
+  state.combatBoss = false;
+  syncBattleSnapshot(battle, state);
+
+  return battle;
+}
+
+function syncBattleSnapshot(battle, state) {
+  if (!battle || !battle.player || !battle.enemy) return;
+
+  battle.enemyName = battle.enemy.name;
+  battle.enemyHP = battle.enemy.hp;
+  battle.enemyMaxHP = battle.enemy.maxHp;
+  battle.enemyAttack = battle.enemy.attack;
+  battle.enemyDefense = battle.enemy.defense;
+  battle.playerHP = battle.player.hp;
+  battle.playerMaxHP = battle.player.maxHp;
+  battle.estado = battle.turn;
+
+  if (state) {
+    state.stats.vida = battle.player.hp;
+    state.stats.vidaMax = battle.player.maxHp;
+    state.stats.ataque = battle.player.attack;
+    state.stats.defesa = battle.player.defense;
+  }
+}
+
+function finalizeBattle(battle, state, venceu) {
+  if (!battle) return;
+
+  battle.finalizado = true;
+  battle.venceu = venceu;
+  battle.turn = TURN_STATES.PLAYER;
+  battle.estado = battle.turn;
+  syncBattleSnapshot(battle, state);
+
+  if (venceu) {
+    battle.mensagem = `${battle.enemy.name} foi derrotado! Toque em CONTINUAR para voltar ao tabuleiro.`;
+  } else {
+    battle.mensagem = `Você foi derrotado... Toque em CONTINUAR para reiniciar no início do tabuleiro.`;
+  }
+}
+
+function handlePlayerAction(state) {
+  const battle = state?.combat;
+  if (!battle || battle.finalizado) return false;
+
+  const damageDealt = battle.enemy.receiveAttack(battle.player.attackValue(TURN_ATTACK_BONUSES.player.min, TURN_ATTACK_BONUSES.player.max));
+  battle.mensagem = `Você atacou ${battle.enemy.name} e causou ${damageDealt} de dano.`;
+  syncBattleSnapshot(battle, state);
+
+  if (!battle.enemy.isAlive) {
+    finalizeBattle(battle, state, true);
+    return true;
+  }
+
+  const enemyDamage = battle.player.receiveAttack(battle.enemy.attackValue(TURN_ATTACK_BONUSES.enemy.min, TURN_ATTACK_BONUSES.enemy.max));
+  battle.turn = TURN_STATES.ENEMY;
+  battle.estado = battle.turn;
+  battle.mensagem += `\n${battle.enemy.name} contra-atacou e causou ${enemyDamage} de dano.`;
+  syncBattleSnapshot(battle, state);
+
+  if (!battle.player.isAlive) {
+    finalizeBattle(battle, state, false);
+    return true;
+  }
+
+  battle.turn = TURN_STATES.PLAYER;
+  battle.estado = battle.turn;
+  syncBattleSnapshot(battle, state);
+
+  return true;
+}
+
+function getBattleInfo(state) {
+  if (!state?.combat) return null;
+  return state.combat;
+}
+
+window.turnManager = {
+  TURN_STATES,
+  createCombatState,
+  syncBattleSnapshot,
+  finalizeBattle,
+  handlePlayerAction,
+  getBattleInfo,
+};

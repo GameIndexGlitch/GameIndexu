@@ -15,12 +15,25 @@ const ENEMIES_COMBAT = [
   { name: "Wraith", hp: 16, attack: 5, defense: 1 },
 ];
 
+const ENEMIES_COMBAT_FASE2 = [
+  { name: "Flame Bat", hp: 14, attack: 6, defense: 2 },
+  { name: "Spectral Knight", hp: 18, attack: 6, defense: 3 },
+  { name: "Viper Mage", hp: 16, attack: 7, defense: 2 },
+  { name: "Iron Golem", hp: 22, attack: 7, defense: 4 },
+];
+
+const BOSS_BY_FASE = {
+  1: { name: "Shadow Lord", hp: 25, attack: 8, defense: 4 },
+  2: { name: "Eclipse Queen", hp: 32, attack: 10, defense: 5 },
+};
+
 function getEnemyTemplate(state) {
   if (state?.combatBoss) {
-    return { name: "Shadow Lord", hp: 25, attack: 8, defense: 4 };
+    return BOSS_BY_FASE[state.fase] || BOSS_BY_FASE[1];
   }
 
-  const enemyData = ENEMIES_COMBAT[Math.floor(Math.random() * ENEMIES_COMBAT.length)];
+  const pool = state?.fase === 2 ? ENEMIES_COMBAT_FASE2 : ENEMIES_COMBAT;
+  const enemyData = pool[Math.floor(Math.random() * pool.length)];
   return {
     name: enemyData.name,
     hp: enemyData.hp,

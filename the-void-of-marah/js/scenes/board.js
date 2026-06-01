@@ -80,32 +80,95 @@ function gerarMalhaOrganica() {
   return casas;
 }
 
-const MAPA_FLUXO = {
+function gerarMalhaOrganicaFase2() {
+  const layoutGrid = [
+    [0],
+    [-1, 1],
+    [-2, 0, 2],
+    [-1, 1],
+    [0, 2, 4],
+    [1, 3],
+    [2, 4],
+    [1, 3, 5],
+    [2, 4],
+    [1, 3],
+    [0, 2],
+    [1],
+    [0],
+  ];
+
+  let casas = [];
+  let idCounter = 0;
+
+  for (let c = 0; c < layoutGrid.length; c++) {
+    for (let i = 0; i < layoutGrid[c].length; i++) {
+      let r = layoutGrid[c][i];
+
+      let x = 130 + c * 120;
+      let y = 520 + r * 55;
+
+      let tipo = CASAS.NORMAL;
+      if (c === 0) tipo = CASAS.CHECKPOINT;
+      else if (c === layoutGrid.length - 1) tipo = CASAS.BOSS;
+      else if (c === 5 && r === 3) tipo = CASAS.RECOVERY;
+      else if (idCounter % 9 === 0) tipo = CASAS.GACHA;
+      else if (idCounter % 6 === 0) tipo = CASAS.COMBAT;
+      else if (idCounter % 11 === 0) tipo = CASAS.RECOVERY;
+
+      casas.push({ id: idCounter, c, r, x, y, tipo, proximas: [] });
+      idCounter++;
+    }
+  }
+
+  casas.forEach((casa) => {
+    let casasNaProximaColuna = casas.filter((n) => n.c === casa.c + 1);
+    casasNaProximaColuna.forEach((proxima) => {
+      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1) {
+        casa.proximas.push(proxima.id);
+      }
+    });
+  });
+
+  return casas;
+}
+
+const MAPA_FLUXO_FASE1 = {
   nome: "The Void - Ruínas Flutuantes",
   casas: gerarMalhaOrganica(),
 };
+
+const MAPA_FLUXO_FASE2 = {
+  nome: "The Void - Labirinto de Éclipse",
+  casas: gerarMalhaOrganicaFase2(),
+};
+
+function getMapaFluxo(state) {
+  return state?.fase === 2 ? MAPA_FLUXO_FASE2 : MAPA_FLUXO_FASE1;
+}
 
 function renderBoard(ctx, assets, state, mouseX, mouseY) {
   stateGlobal = state;
   mouseXGlobal = mouseX;
   mouseYGlobal = mouseY;
 
+  const mapa = getMapaFluxo(state);
+
   if (assets.fundoBoard && assets.fundoBoard.complete) {
     ctx.drawImage(assets.fundoBoard, 0, 0, 1920, 1080);
   }
 
-  desenharConexoes(ctx, MAPA_FLUXO);
+  desenharConexoes(ctx, mapa);
 
-  MAPA_FLUXO.casas.forEach((casa) => {
+  mapa.casas.forEach((casa) => {
     let scale = 1.0;
-    if (casa.c === 14) scale = 1.3;
-    if (casa.c === 8 && casa.r === 0) scale = 1.2;
+    if (casa.tipo === CASAS.BOSS) scale = 1.3;
+    else if (casa.tipo === CASAS.RECOVERY) scale = 1.2;
     desenharSombra(ctx, casa.x, casa.y, scale);
   });
 
-  processarMovimentoBoard(state, MAPA_FLUXO);
+  processarMovimentoBoard(state, mapa);
 
-  MAPA_FLUXO.casas.forEach((casa) => {
+  mapa.casas.forEach((casa) => {
     const ehOpcao = state.opcoesDeCaminho?.includes(casa.id);
     const dx = Math.abs(mouseX - casa.x) / (LARGURA_PISO / 2);
     const dy = Math.abs(mouseY - casa.y) / (ALTURA_PISO / 2);
@@ -115,13 +178,13 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
     if (ehOpcao) corFinal = isHover ? "#ffffff" : "#aaaaaa";
 
     let scale = 1.0;
-    if (casa.c === 14) scale = 1.3;
-    if (casa.c === 8 && casa.r === 0) scale = 1.2;
+    if (casa.tipo === CASAS.BOSS) scale = 1.3;
+    else if (casa.tipo === CASAS.RECOVERY) scale = 1.2;
 
     desenharBloco(ctx, casa.x, casa.y, corFinal, ehOpcao || isHover, scale);
   });
 
-  renderPersonagem(ctx, assets, state, MAPA_FLUXO);
+  renderPersonagem(ctx, assets, state, mapa);
   renderHUD(ctx, state);
 
   if (
@@ -262,6 +325,8 @@ function aplicarEfeitoDaCasa(casa) {
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null;
       stateGlobal.combatBoss = true;
+      stateGlobal.bossTransition =
+        stateGlobal.fase === 1 ? "paraFase2" : "reiniciar";
     }
   } else if (casa.tipo === CASAS.RECOVERY) {
     if (stateGlobal && stateGlobal.stats) {
@@ -442,7 +507,8 @@ window.addEventListener("mousedown", () => {
   }
 
   if (controleMovimento.esperandoEscolha && stateGlobal.opcoesDeCaminho) {
-    MAPA_FLUXO.casas.forEach((casa) => {
+    const mapa = getMapaFluxo(stateGlobal);
+    mapa.casas.forEach((casa) => {
       if (stateGlobal.opcoesDeCaminho.includes(casa.id)) {
         const dx = Math.abs(mouseXGlobal - casa.x) / (LARGURA_PISO / 2);
         const dy = Math.abs(mouseYGlobal - casa.y) / (ALTURA_PISO / 2);

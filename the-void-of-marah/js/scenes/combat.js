@@ -125,6 +125,30 @@ function continuarDepoisDoCombate(state) {
   if (!combat || !combat.finalizado) return;
 
   if (combat.venceu) {
+    if (state.bossTransition === "paraFase2") {
+      state.fase = 2;
+      state.casaAtual = 0;
+      state.opcoesDeCaminho = [];
+      controleMovimento.passosRestantes = 0;
+      controleMovimento.esperandoEscolha = false;
+      controleMovimento.dadoAtivo = false;
+      controleMovimento.animandoPulo = false;
+      controleMovimento.puloProgresso = 0;
+      controleMovimento.casaOrigem = null;
+      controleMovimento.casaDestino = null;
+      state.bossTransition = null;
+    } else if (state.bossTransition === "reiniciar") {
+      state.casaAtual = 0;
+      state.opcoesDeCaminho = [];
+      controleMovimento.passosRestantes = 0;
+      controleMovimento.esperandoEscolha = false;
+      controleMovimento.dadoAtivo = false;
+      controleMovimento.animandoPulo = false;
+      controleMovimento.puloProgresso = 0;
+      controleMovimento.casaOrigem = null;
+      controleMovimento.casaDestino = null;
+      state.bossTransition = null;
+    }
     state.proximaCena = "jogo";
   } else {
     // Reset game on defeat: restore HP and return to board start

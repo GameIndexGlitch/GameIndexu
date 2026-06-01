@@ -27,6 +27,7 @@ let state = {
   personagemSelecionado: null, // "maya" ou "zeck"
   casaAtual: 0, // Índice da casa no tabuleiro (0-31)
   fase: 1,
+  bossTransition: null,
   gacha: null,
 
   stats: {

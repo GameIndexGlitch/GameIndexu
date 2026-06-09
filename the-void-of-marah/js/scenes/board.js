@@ -503,6 +503,12 @@ function renderPersonagem(ctx, assets, state, mapa) {
     state.personagemSelecionado === "maya" ? assets.card3 : assets.card4;
   if (!img || !img.complete) return;
 
+  ctx.save(); // Salva o estado atual do contexto
+
+  // ATIVA a suavização especificamente para os personagens chibi e blablabla
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   if (controleMovimento.animandoPulo) {
     const casaOrigem = mapa.casas.find(
       (c) => c.id === controleMovimento.casaOrigem,
@@ -513,10 +519,8 @@ function renderPersonagem(ctx, assets, state, mapa) {
 
     if (casaOrigem && casaDestino) {
       const p = controleMovimento.puloProgresso;
-
       const lerpX = casaOrigem.x + (casaDestino.x - casaOrigem.x) * p;
       const lerpY = casaOrigem.y + (casaDestino.y - casaOrigem.y) * p;
-
       const alturaPulo = 80;
       const arcoY = Math.sin(p * Math.PI) * alturaPulo;
 
@@ -528,6 +532,8 @@ function renderPersonagem(ctx, assets, state, mapa) {
       ctx.drawImage(img, casa.x - 69, casa.y - 170, 130, 195);
     }
   }
+
+  ctx.restore(); // Restaura o contexto (o que desativa a suavização para o resto do tabuleiro)
 }
 
 // Mostra dados do jogador como nome, vida e defesa no painel inferior.

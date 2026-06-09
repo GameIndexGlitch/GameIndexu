@@ -10,13 +10,6 @@ let combateStateGlobal = null;
 let combateMouseXGlobal = 0;
 let combateMouseYGlobal = 0;
 
-const ENEMIGOS_COMBAT = [
-  { name: "Slime", hp: 8, attack: 2, defense: 1 },
-  { name: "Goblin", hp: 12, attack: 4, defense: 2 },
-  { name: "Orc", hp: 20, attack: 5, defense: 3 },
-  { name: "Wraith", hp: 16, attack: 5, defense: 1 },
-];
-
 // Renderiza a cena de combate, inicializa a batalha se necessário e desenha HUD + botão.
 function renderCombat(ctx, assets, state, mouseX, mouseY) {
   combateStateGlobal = state;

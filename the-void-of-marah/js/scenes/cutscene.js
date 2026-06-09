@@ -11,6 +11,7 @@ const configCutscene = {
   imagensSrc: [
     "assets/drawings/cutscenes/PrimeiraCutscene.png",
     "assets/drawings/cutscenes/SegundaCutscene.png",
+    "assets/drawings/cutscenes/TerceiraCutscene.png",
     // Adicione mais caminhos aqui conforme necessário
   ],
   // Cena para onde ir após a cutscene acabar

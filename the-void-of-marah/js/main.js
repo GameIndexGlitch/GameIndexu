@@ -11,7 +11,6 @@ let mousePos = { x: 0, y: 0 };
 
 /**
  * Estado Global do Jogo
- * Gerencia a cena atual, dados do jogador e progresso.
  */
 let state = {
   cena: "menu",
@@ -19,14 +18,12 @@ let state = {
   volumeAntesDeMutar: 10,
   mutado: false,
 
-  // Controle de Transição (Fade)
   transicao: 0,
   emTransicao: false,
   proximaCena: "",
 
-  // Dados do Personagem e Progressão
-  personagemSelecionado: null, // "maya" ou "zeck"
-  casaAtual: 0, // Índice da casa no tabuleiro (0-31)
+  personagemSelecionado: null,
+  casaAtual: 0,
   fase: 1,
   bossTransition: null,
   gacha: null,
@@ -43,26 +40,19 @@ window.state = state;
 
 /**
  * Carregamento de Assets
- * Organizado conforme a arquitetura de pastas definida.
  */
 const assets = {
-  // Telas de Fundo
   fundo: new Image(),
   fundoSelecao: new Image(),
   fundoBoard: new Image(),
-
-  // Elementos de UI (Desenhos)
   btnStart: new Image(),
   btnCreditos: new Image(),
-
-  // Personagens (Cards e Chibis)
   card1: new Image(),
   card2: new Image(),
   card3: new Image(),
   card4: new Image(),
 };
 
-// Definição dos caminhos dos arquivos
 assets.fundo.src = "assets/drawings/TitleScreenUI/background/TelaInicial.png";
 assets.fundoSelecao.src =
   "assets/drawings/selectScreenUI/background/FundoSelecao.png";
@@ -74,22 +64,24 @@ assets.card1.src =
   "assets/drawings/selectScreenUI/selectCard/MayaSelectCard.png";
 assets.card2.src =
   "assets/drawings/selectScreenUI/selectCard/ZeckSelectCard.png";
-assets.card3.src =
-  "assets/drawings/chars/MayaChibiTab.png";
-assets.card4.src =
-  "assets/drawings/chars/ZeckChibiTab.png";  
+assets.card3.src = "assets/drawings/chars/MayaChibiTab.png";
+assets.card4.src = "assets/drawings/chars/ZeckChibiTab.png";
+
+// Inicializa o módulo de cutscenes
+inicializarCutscenes();
 
 /**
  * Loop Principal do Jogo
  */
 function loop() {
-  // Limpeza de tela e configurações de renderização
   ctx.clearRect(0, 0, 1920, 1080);
-  ctx.imageSmoothingEnabled = false; // Preserva a nitidez de artes pixeladas
+  ctx.imageSmoothingEnabled = false;
 
-  // Máquina de Estados: Renderização por Cena
+  // Renderização por Cena
   if (state.cena === "menu") {
     renderMenu(ctx, assets, state, mousePos.x, mousePos.y);
+  } else if (state.cena === "cutscene") {
+    renderCutscene(ctx);
   } else if (state.cena === "selecao") {
     renderSelecao(ctx, assets, mousePos.x, mousePos.y);
   } else if (state.cena === "creditos") {
@@ -102,16 +94,13 @@ function loop() {
     renderGacha(ctx, state, mousePos.x, mousePos.y);
   }
 
-  // Processamento do Sistema de Transição
   gerenciarTransicao();
-
   requestAnimationFrame(loop);
 }
 
 /**
- * Gerencia o efeito de fade-in e fade-out entre as cenas
+ * Gerenciamento de Transição
  */
-// Controla o fade entre cenas quando o jogo muda de estado.
 function gerenciarTransicao() {
   if (state.emTransicao) {
     state.transicao += 0.05;
@@ -123,7 +112,6 @@ function gerenciarTransicao() {
     state.transicao -= 0.05;
   }
 
-  // Desenha a sobreposição de transição
   if (state.transicao > 0) {
     ctx.fillStyle = `rgba(255, 255, 255, ${state.transicao})`;
     ctx.fillRect(0, 0, 1920, 1080);
@@ -131,24 +119,21 @@ function gerenciarTransicao() {
 }
 
 /**
- * Eventos de Entrada (Mouse)
+ * Eventos
  */
 canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect();
-  // Ajusta a coordenada do mouse proporcionalmente ao tamanho do canvas na tela
   mousePos.x = (e.clientX - rect.left) * (1920 / rect.width);
   mousePos.y = (e.clientY - rect.top) * (1080 / rect.height);
 });
 
-// Captura cliques do mouse para menus, seleção de personagem e ajustes de volume.
 canvas.addEventListener("mousedown", (e) => {
   if (state.emTransicao) return;
 
-  // Cliques na Cena de Menu
   if (state.cena === "menu") {
     const acao = checkMenuClick(mousePos.x, mousePos.y, assets);
     if (acao === "iniciar") {
-      state.proximaCena = "selecao";
+      state.proximaCena = "cutscene";
       state.emTransicao = true;
     } else if (acao === "creditos") {
       state.proximaCena = "creditos";
@@ -162,9 +147,13 @@ canvas.addEventListener("mousedown", (e) => {
       if (state.volume > 0) state.volume--;
       if (state.volume === 0) state.mutado = true;
     }
-  }
-  // Cliques na Cena de Seleção
-  else if (state.cena === "selecao") {
+  } else if (state.cena === "cutscene") {
+    const acao = checkCutsceneClick();
+    if (acao === "proxima_cena") {
+      state.proximaCena = "selecao";
+      state.emTransicao = true;
+    }
+  } else if (state.cena === "selecao") {
     const escolha = checkSelecaoClick(mousePos.x, mousePos.y);
     if (escolha) {
       state.personagemSelecionado = escolha;
@@ -174,9 +163,6 @@ canvas.addEventListener("mousedown", (e) => {
   }
 });
 
-/**
- * Lógica de Volume
- */
 function alternarMute() {
   if (!state.mutado) {
     state.volumeAntesDeMutar = state.volume;
@@ -188,7 +174,6 @@ function alternarMute() {
   }
 }
 
-// Inicia o jogo assim que o primeiro asset fundamental carregar
 assets.fundo.onload = () => {
   loop();
 };

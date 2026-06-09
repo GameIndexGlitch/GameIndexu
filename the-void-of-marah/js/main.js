@@ -58,6 +58,8 @@ const assets = {
   // Personagens (Cards e Chibis)
   card1: new Image(),
   card2: new Image(),
+  card3: new Image(),
+  card4: new Image(),
 };
 
 // Definição dos caminhos dos arquivos
@@ -72,6 +74,10 @@ assets.card1.src =
   "assets/drawings/selectScreenUI/selectCard/MayaSelectCard.png";
 assets.card2.src =
   "assets/drawings/selectScreenUI/selectCard/ZeckSelectCard.png";
+assets.card3.src =
+  "assets/drawings/chars/MayaChibiTab.png";
+assets.card4.src =
+  "assets/drawings/chars/ZeckChibiTab.png";  
 
 /**
  * Loop Principal do Jogo

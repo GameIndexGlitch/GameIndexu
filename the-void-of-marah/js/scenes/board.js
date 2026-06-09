@@ -520,12 +520,12 @@ function renderPersonagem(ctx, assets, state, mapa) {
       const alturaPulo = 80;
       const arcoY = Math.sin(p * Math.PI) * alturaPulo;
 
-      ctx.drawImage(img, lerpX - 55, lerpY - 160 - arcoY, 110, 160);
+      ctx.drawImage(img, lerpX - 69, lerpY - 170 - arcoY, 130, 195);
     }
   } else {
     const casa = mapa.casas.find((c) => c.id === state.casaAtual);
     if (casa) {
-      ctx.drawImage(img, casa.x - 55, casa.y - 160, 110, 160);
+      ctx.drawImage(img, casa.x - 69, casa.y - 170, 130, 195);
     }
   }
 }

@@ -2,6 +2,8 @@
 
 const configCutscene = {
   imagensSrc: [
+    "assets/drawings/cutscenes/CutsceneInicial.png",
+    "assets/drawings/cutscenes/CutsceneInicial2.png",
     "assets/drawings/cutscenes/PrimeiraCutscene.png",
     "assets/drawings/cutscenes/SegundaCutscene.png",
     "assets/drawings/cutscenes/TerceiraCutscene.png",
@@ -11,6 +13,7 @@ const configCutscene = {
     "assets/drawings/cutscenes/SétimaCutscene.png",
     "assets/drawings/cutscenes/OitavaCutscene.png",
     "assets/drawings/cutscenes/NonaCutscene.png",
+    "assets/drawings/cutscenes/DecimaCutscene.png",
   ],
   cenaDestinoFinal: "selecao",
 };

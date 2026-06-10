@@ -135,7 +135,20 @@ function finalizeBattle(battle, state, venceu) {
   syncBattleSnapshot(battle, state);
 
   if (venceu) {
-    battle.mensagem = `${battle.enemy.name} foi derrotado! Toque em CONTINUAR para voltar ao tabuleiro.`;
+    const itemRecebido = state?.itemReward && state.combatHouseType === "combat"
+      ? { ...state.itemReward }
+      : null;
+
+    if (itemRecebido) {
+      battle.itemRecebido = itemRecebido;
+      state.itensRecebidos = Array.isArray(state.itensRecebidos)
+        ? [...state.itensRecebidos, itemRecebido]
+        : [itemRecebido];
+      state.itemReward = null;
+      battle.mensagem = `${battle.enemy.name} foi derrotado! Você recebeu o item ${itemRecebido.nome}.`;
+    } else {
+      battle.mensagem = `${battle.enemy.name} foi derrotado! Toque em CONTINUAR para voltar ao tabuleiro.`;
+    }
   } else {
     battle.mensagem = `Você foi derrotado... Toque em CONTINUAR para reiniciar no início do tabuleiro.`;
   }

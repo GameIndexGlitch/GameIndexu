@@ -27,6 +27,9 @@ let state = {
   fase: 1,
   bossTransition: null,
   gacha: null,
+  itensRecebidos: [],
+  itemReward: null,
+  combatHouseType: null,
 
   stats: {
     vida: 10,

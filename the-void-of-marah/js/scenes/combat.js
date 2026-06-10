@@ -67,41 +67,127 @@ function desenharHUDCombate(ctx, state) {
   const combat = state.combat;
   if (!combat) return;
 
+  // Desativa a suavização para garantir que as espadas/escudos/corações fiquem nítidos
+  ctx.imageSmoothingEnabled = false;
+
   // ---- STATUS DO INIMIGO ----
   const enemyBarY = 100; 
   
+  // Barra Esticada do Inimigo
   desenharBarraVida(ctx, 350, enemyBarY, 1000, 40, combat.enemyHP, combat.enemyMaxHP, "#ff4c4c");
+  
+  // Coração e HP do Inimigo (Dentro da barra)
+  if (assets.iconVida && assets.iconVida.complete) {
+    ctx.drawImage(assets.iconVida, 360, enemyBarY + 4, 32, 32);
+  }
   ctx.font = "bold 24px sans-serif";
   ctx.fillStyle = "white";
-  ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, 360, enemyBarY + 28);
+  ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, 400, enemyBarY + 28);
 
+  // Nome e Defesa do Inimigo
   ctx.fillStyle = "#1f1f2b";
   ctx.font = "bold 38px sans-serif";
   ctx.textAlign = "right"; 
-  ctx.fillText(`${combat.enemyName || "Inimigo"}  |  DEFESA: ${combat.enemyDefense || 0}`, 1350, enemyBarY + 80);
-  ctx.textAlign = "left"; 
   
+  // O inimigo é alinhado pela direita, então calculamos o tamanho do texto para pôr o ícone do lado certo
+  const textoDefesaInimigo = `DEFESA: ${combat.enemyDefense || 0}`;
+  ctx.fillText(textoDefesaInimigo, 1350, enemyBarY + 80);
+  
+  const larguraDefesaInimigo = ctx.measureText(textoDefesaInimigo).width;
+  
+  // Ícone do Escudo do Inimigo
+  if (assets.iconDefesa && assets.iconDefesa.complete) {
+    ctx.drawImage(assets.iconDefesa, 1350 - larguraDefesaInimigo - 45, enemyBarY + 50, 32, 32);
+  }
+  
+  // Nome do Inimigo
+  ctx.fillText(combat.enemyName || "Inimigo", 1350 - larguraDefesaInimigo - 65, enemyBarY + 80);
+  
+  ctx.textAlign = "left"; // Restaura o alinhamento para o restante
+
 
   // ---- STATUS DO JOGADOR ----
   const playerBarY = 740;
+  const textoY = playerBarY - 20;
+  const iconeY = playerBarY - 48; // Sobe o ícone uns pixels para alinhar verticalmente com a fonte
 
   ctx.fillStyle = "#1f1f2b";
   ctx.font = "bold 38px sans-serif";
   const nomePlayer = state.personagemSelecionado?.toUpperCase() || "PLAYER";
   
-  // Aqui está a mágica: Adicionamos o "DANO" ao lado da Defesa!
-  ctx.fillText(`${nomePlayer}  |  DEFESA: ${combat.playerDefense || state.stats?.defesa || 0}  |  DANO: ${state.stats?.ataque || 0}`, 550, playerBarY - 20);
+  // 1. Nome do Jogador
+  ctx.fillText(nomePlayer, 550, textoY);
   
+  // 2. Escudo e Texto da Defesa
+  if (assets.iconDefesa && assets.iconDefesa.complete) {
+    ctx.drawImage(assets.iconDefesa, 730, iconeY, 32, 32);
+  }
+  ctx.fillText(`DEFESA: ${combat.playerDefense || state.stats?.defesa || 0}`, 770, textoY);
+  
+  // 3. Espada e Texto do Dano
+  if (assets.iconDano && assets.iconDano.complete) {
+    ctx.drawImage(assets.iconDano, 1000, iconeY, 32, 32);
+  }
+  ctx.fillText(`DANO: ${state.stats?.ataque || 0}`, 1040, textoY);
+  
+  // Barra Esticada do Jogador
   desenharBarraVida(ctx, 550, playerBarY, 1000, 40, combat.playerHP, combat.playerMaxHP, "#66b3ff");
+  
+  // 4. Coração e HP do Jogador (Dentro da barra)
+  if (assets.iconVida && assets.iconVida.complete) {
+    ctx.drawImage(assets.iconVida, 560, playerBarY + 4, 32, 32);
+  }
   ctx.font = "bold 24px sans-serif";
   ctx.fillStyle = "white";
-  ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, 560, playerBarY + 28);
+  ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, 600, playerBarY + 28);
+
 
   // ---- CAIXA DE MENSAGEM ----
   ctx.font = "28px sans-serif";
   ctx.fillStyle = "#1f1f2b";
-  // Ajuste: Aumentei o Y de 820 para 860 para descer o texto
   wrapText(ctx, combat.mensagem || "", 150, 860, 350, 36);
+
+  // ---- ITEM RECEBIDO AO VENCER O COMBATE ----
+  if (combat.finalizado && combat.venceu && combat.itemRecebido) {
+    const item = combat.itemRecebido;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+    ctx.strokeStyle = "#ff7a59";
+    ctx.lineWidth = 4;
+
+    const itemCardX = 710;
+    const itemCardY = 220;
+    const itemCardW = 500;
+    const itemCardH = 170;
+
+    ctx.fillRect(itemCardX, itemCardY, itemCardW, itemCardH);
+    ctx.strokeRect(itemCardX, itemCardY, itemCardW, itemCardH);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.font = "bold 28px sans-serif";
+    ctx.fillText("Item recebido", itemCardX + 30, itemCardY + 40);
+
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(item.nome || "Item exemplo", itemCardX + 30, itemCardY + 82);
+
+    ctx.font = "18px sans-serif";
+    ctx.fillText(item.descricao || "Espaço para trocar depois.", itemCardX + 30, itemCardY + 118, itemCardW - 70);
+
+    ctx.fillStyle = "#f4f4f7";
+    ctx.fillRect(itemCardX + 330, itemCardY + 30, 130, 100);
+    ctx.strokeStyle = "#1f1f2b";
+    ctx.strokeRect(itemCardX + 330, itemCardY + 30, 130, 100);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PNG", itemCardX + 395, itemCardY + 72);
+    ctx.fillText("aqui", itemCardX + 395, itemCardY + 102);
+    ctx.restore();
+
+    ctx.textAlign = "left";
+  }
 }
 
 function desenharBarraVida(ctx, x, y, width, height, current, max, color) {
@@ -124,13 +210,42 @@ function desenharBotoesAcao(ctx, state) {
   const combat = state.combat;
   if (!combat) return;
 
-  // Os 4 botões de baixo. O Soco fica inativo (!ativo) se o combate finalizar.
-  const botoes = [
-    { id: "soco", texto: "SOCO", x: MENU_X, y: MENU_Y, ativo: !combat.finalizado },
-    { id: "vazio1", texto: "---", x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y, ativo: false },
-    { id: "vazio2", texto: "---", x: MENU_X, y: MENU_Y + BTN_H + BTN_SPACING, ativo: false },
-    { id: "vazio3", texto: "---", x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y + BTN_H + BTN_SPACING, ativo: false }
+  // Garante que o player tenha uma lista de ataques (padrão é só o soco)
+  if (!state.ataques) state.ataques = ["soco"];
+
+  // Mapeamos as posições físicas do Grid 2x2 na tela
+  const posicoesGrid = [
+    { x: MENU_X, y: MENU_Y },
+    { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y },
+    { x: MENU_X, y: MENU_Y + BTN_H + BTN_SPACING },
+    { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y + BTN_H + BTN_SPACING }
   ];
+
+  const botoes = [];
+
+  // Criamos os 4 botões na hora, lendo o que o jogador tem guardado no state.ataques
+  for (let i = 0; i < 4; i++) {
+    if (i < state.ataques.length) {
+      const atk = ATAQUES_JOGO[state.ataques[i]];
+      botoes.push({
+        id: atk.id,
+        texto: atk.nome,
+        subtexto: `DANO: ${atk.dano}`,
+        x: posicoesGrid[i].x,
+        y: posicoesGrid[i].y,
+        ativo: !combat.finalizado
+      });
+    } else {
+      botoes.push({
+        id: `vazio${i}`,
+        texto: "---",
+        subtexto: null,
+        x: posicoesGrid[i].x,
+        y: posicoesGrid[i].y,
+        ativo: false
+      });
+    }
+  }
 
   botoes.forEach(btn => {
     const isHover = btn.ativo &&
@@ -147,13 +262,21 @@ function desenharBotoesAcao(ctx, state) {
     ctx.strokeRect(btn.x, btn.y, BTN_W, BTN_H);
 
     ctx.fillStyle = "#1f1f2b";
-    ctx.font = "bold 32px sans-serif"; 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(btn.texto, btn.x + BTN_W / 2, btn.y + BTN_H / 2);
+
+    if (btn.subtexto) {
+      ctx.font = "bold 32px sans-serif"; 
+      ctx.fillText(btn.texto, btn.x + BTN_W / 2, btn.y + BTN_H / 2 - 12);
+      
+      ctx.font = "bold 20px sans-serif"; 
+      ctx.fillText(btn.subtexto, btn.x + BTN_W / 2, btn.y + BTN_H / 2 + 18);
+    } else {
+      ctx.font = "bold 32px sans-serif"; 
+      ctx.fillText(btn.texto, btn.x + BTN_W / 2, btn.y + BTN_H / 2);
+    }
   });
 
-  // ---- DESENHA O BOTÃO CONTINUAR NO CENTRO SE A LUTA ACABOU ----
   if (combat.finalizado) {
     const btnCont = BOTAO_CONTINUAR;
     const hoverCont = 
@@ -181,8 +304,8 @@ function desenharBotoesAcao(ctx, state) {
 }
 
 // Chama a lógica do turno do jogador para executar o ataque.
-function executarAtaque(state) {
-  if(turnManager) turnManager.handlePlayerAction(state);
+function executarAtaque(state, ataqueEscolhido) {
+  if(turnManager) turnManager.handlePlayerAction(state, ataqueEscolhido);
 }
 
 // Finaliza a batalha e atualiza o estado com vitória ou derrota.
@@ -304,13 +427,30 @@ window.addEventListener("mousedown", (event) => {
   } 
   // Se o combate ainda está acontecendo, verifica o clique NO BOTÃO DE SOCO
   else {
-    if (
-      clickX >= BOTAO_SOCO.x &&
-      clickX <= BOTAO_SOCO.x + BOTAO_SOCO.width &&
-      clickY >= BOTAO_SOCO.y &&
-      clickY <= BOTAO_SOCO.y + BOTAO_SOCO.height
-    ) {
-      executarAtaque(combateStateGlobal);
+    if (!combateStateGlobal.ataques) combateStateGlobal.ataques = ["soco"];
+    
+    // Mesmas posições do grid
+    const posicoesGrid = [
+      { x: MENU_X, y: MENU_Y },
+      { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y },
+      { x: MENU_X, y: MENU_Y + BTN_H + BTN_SPACING },
+      { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y + BTN_H + BTN_SPACING }
+    ];
+
+    // Checa a colisão apenas nos blocos que contêm ataques
+    for (let i = 0; i < combateStateGlobal.ataques.length; i++) {
+      let pos = posicoesGrid[i];
+      if (
+        clickX >= pos.x &&
+        clickX <= pos.x + BTN_W &&
+        clickY >= pos.y &&
+        clickY <= pos.y + BTN_H
+      ) {
+        // Encontrou! Puxa o ataque do dicionário e manda executar
+        const ataqueEscolhido = ATAQUES_JOGO[combateStateGlobal.ataques[i]];
+        executarAtaque(combateStateGlobal, ataqueEscolhido);
+        break;
+      }
     }
   }
 });

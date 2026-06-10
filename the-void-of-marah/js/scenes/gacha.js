@@ -14,7 +14,8 @@ const GACHA_BUTTON = {
 function inicializarGacha(state) {
   if (!state.gacha) {
     state.gacha = {
-      itens: window.gachaSystem.gerarItensGacha(),
+      // Adicionamos o 'state' aqui dentro dos parênteses:
+      itens: window.gachaSystem.gerarItensGacha(state), 
       selecionado: null,
       aplicado: false,
       mensagem: "Escolha um item para receber como recompensa.",

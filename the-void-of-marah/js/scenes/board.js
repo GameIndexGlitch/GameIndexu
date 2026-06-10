@@ -12,6 +12,13 @@ const CASAS = {
   BOSS: { cor: "#9900ff" },
 };
 
+const ITENS_EXEMPLO_FASE1 = [
+  { nome: "Fragmento Vermelho", descricao: "Fragmento brilhante.", imagem: null },
+  { nome: "Bomba de Fumaça", descricao: "Bomba de brinquedo. Será que funciona?", imagem: null },
+  { nome: "Lâmina Brilhante", descricao: "Pedaço de estilete.", imagem: null },
+  { nome: "Escudo de Cinza", descricao: "Um escudo simples.", imagem: null },
+];
+
 // Estado interno de movimento do jogador no tabuleiro.
 // Estado local de movimento do personagem, incluindo animações e escolhas de caminho.
 let controleMovimento = {
@@ -68,7 +75,12 @@ function gerarMalhaOrganica() {
       else if (idCounter % 6 === 0) tipo = CASAS.COMBAT;
       else if (idCounter % 13 === 0) tipo = CASAS.RECOVERY;
 
-      casas.push({ id: idCounter, c, r, x, y, tipo, proximas: [] });
+      const itemReward =
+        tipo === CASAS.COMBAT
+          ? { ...ITENS_EXEMPLO_FASE1[idCounter % ITENS_EXEMPLO_FASE1.length] }
+          : null;
+
+      casas.push({ id: idCounter, c, r, x, y, tipo, itemReward, proximas: [] });
       idCounter++;
     }
   }
@@ -401,6 +413,8 @@ function aplicarEfeitoDaCasa(casa) {
     }
   } else if (casa.tipo === CASAS.COMBAT) {
     if (stateGlobal) {
+      stateGlobal.combatHouseType = "combat";
+      stateGlobal.itemReward = casa.itemReward || { ...ITENS_EXEMPLO_FASE1[0] };
       stateGlobal.proximaCena = "combat";
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null; // força reinicializar o combate na próxima cena
@@ -408,6 +422,8 @@ function aplicarEfeitoDaCasa(casa) {
     }
   } else if (casa.tipo === CASAS.BOSS) {
     if (stateGlobal) {
+      stateGlobal.combatHouseType = "boss";
+      stateGlobal.itemReward = null;
       stateGlobal.proximaCena = "combat";
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null;
@@ -557,22 +573,26 @@ function renderHUD(ctx, state) {
   ctx.imageSmoothingEnabled = false;
 
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-  ctx.fillRect(50, 880, 480, 150);
+  
+  // O último número (15) é o raio da curva. Quanto maior, mais redondo.
+  ctx.beginPath();
+  ctx.roundRect(50, 880, 480, 150, 15);
+  ctx.fill();
 
   ctx.fillStyle = "white";
-  ctx.font = "bold 36px sans-serif";
+  // Mudança da fonte para Consolas (com fallback para monospace caso falhe)
+  ctx.font = "bold 36px Consolas, monospace";
   ctx.fillText(state.personagemSelecionado?.toUpperCase() || "", 80, 910);
 
-  ctx.font = "24px sans-serif";
+  // Mudança da fonte para Consolas
+  ctx.font = "24px Consolas, monospace";
 
-  // --- ÍCONE E TEXTO DE VIDA ---
   if (assets.iconVida && assets.iconVida.complete) {
     ctx.drawImage(assets.iconVida, 80, 965, 32, 32);
   }
   ctx.fillStyle = "#ff5555";
   ctx.fillText(`VIDA: ${state.stats.vida}/${state.stats.vidaMax}`, 120, 970);
 
-  // --- ÍCONE E TEXTO DE DANO (ATAQUE) ---
   // Posicionado no X: 290 (mesma coluna da defesa) e Y: 910 (acima dela)
   if (assets.iconDano && assets.iconDano.complete) {
     ctx.drawImage(assets.iconDano, 290, 910, 32, 32);
@@ -580,7 +600,6 @@ function renderHUD(ctx, state) {
   ctx.fillStyle = "#ffcc00"; // Cor amarelo/laranja para destacar o dano
   ctx.fillText(`DANO: ${state.stats.ataque}`, 330, 915);
 
-  // --- ÍCONE E TEXTO DE DEFESA ---
   if (assets.iconDefesa && assets.iconDefesa.complete) {
     ctx.drawImage(assets.iconDefesa, 290, 965, 32, 32);
   }

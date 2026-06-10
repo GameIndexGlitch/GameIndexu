@@ -142,16 +142,16 @@ function finalizeBattle(battle, state, venceu) {
 }
 
 // Executa a ação do jogador e trata o contra-ataque do inimigo.
-function handlePlayerAction(state) {
+function handlePlayerAction(state, ataqueEscolhido) { // <--- Adicione aqui!
   const battle = state?.combat;
   if (!battle || battle.finalizado) return false;
 
   // --- JOGADOR ATACA ---
-  // O soco dá +2 de dano fixo somado ao ataque base do jogador!
-  const poderDoSoco = 2; 
-  const damageDealt = battle.enemy.receiveAttack(battle.player.attackValue(poderDoSoco));
+  // Pega o dano puro direto do ataque selecionado
+  const damageDealt = battle.enemy.receiveAttack(battle.player.attackValue(ataqueEscolhido.dano));
   
-  battle.mensagem = `Você usou SOCO em ${battle.enemy.name} e causou ${damageDealt} de dano.`;
+  // Agora a mensagem fala o nome do golpe correto
+  battle.mensagem = `Você usou ${ataqueEscolhido.nome} em ${battle.enemy.name} e causou ${damageDealt} de dano.`;
   syncBattleSnapshot(battle, state);
 
   if (!battle.enemy.isAlive) {

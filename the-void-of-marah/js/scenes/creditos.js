@@ -10,7 +10,7 @@ function renderCreditos(ctx) {
   ctx.fillText("CRÉDITOS", 1920 / 2, 200);
 
   ctx.font = "40px Arial";
-  ctx.fillText("Arte Desenhada: Ágatha Ariell | Arte Pixel: Rhawan Henrique", 1920 / 2, 400);
+  ctx.fillText("Arte geral: Ágatha Ariell, Rhawan Henrique", 1920 / 2, 400);
   ctx.fillText("Programação: Pedro Júlio, Gabriel Haddad, Thawan Campos, Felipe Eduardo", 1920 / 2, 500);
 
   ctx.font = "25px Arial";

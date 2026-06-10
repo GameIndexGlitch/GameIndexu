@@ -146,6 +146,48 @@ function desenharHUDCombate(ctx, state) {
   ctx.font = "28px sans-serif";
   ctx.fillStyle = "#1f1f2b";
   wrapText(ctx, combat.mensagem || "", 150, 860, 350, 36);
+
+  // ---- ITEM RECEBIDO AO VENCER O COMBATE ----
+  if (combat.finalizado && combat.venceu && combat.itemRecebido) {
+    const item = combat.itemRecebido;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+    ctx.strokeStyle = "#ff7a59";
+    ctx.lineWidth = 4;
+
+    const itemCardX = 710;
+    const itemCardY = 220;
+    const itemCardW = 500;
+    const itemCardH = 170;
+
+    ctx.fillRect(itemCardX, itemCardY, itemCardW, itemCardH);
+    ctx.strokeRect(itemCardX, itemCardY, itemCardW, itemCardH);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.font = "bold 28px sans-serif";
+    ctx.fillText("Item recebido", itemCardX + 30, itemCardY + 40);
+
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(item.nome || "Item exemplo", itemCardX + 30, itemCardY + 82);
+
+    ctx.font = "18px sans-serif";
+    ctx.fillText(item.descricao || "Espaço para trocar depois.", itemCardX + 30, itemCardY + 118, itemCardW - 70);
+
+    ctx.fillStyle = "#f4f4f7";
+    ctx.fillRect(itemCardX + 330, itemCardY + 30, 130, 100);
+    ctx.strokeStyle = "#1f1f2b";
+    ctx.strokeRect(itemCardX + 330, itemCardY + 30, 130, 100);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.font = "bold 20px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PNG", itemCardX + 395, itemCardY + 72);
+    ctx.fillText("aqui", itemCardX + 395, itemCardY + 102);
+    ctx.restore();
+
+    ctx.textAlign = "left";
+  }
 }
 
 function desenharBarraVida(ctx, x, y, width, height, current, max, color) {

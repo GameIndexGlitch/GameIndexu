@@ -12,6 +12,13 @@ const CASAS = {
   BOSS: { cor: "#9900ff" },
 };
 
+const ITENS_EXEMPLO_FASE1 = [
+  { nome: "Fragmento Vermelho", descricao: "Fragmento brilhante.", imagem: null },
+  { nome: "Bomba de Fumaça", descricao: "Bomba de brinquedo. Será que funciona?", imagem: null },
+  { nome: "Lâmina Brilhante", descricao: "Pedaço de estilete.", imagem: null },
+  { nome: "Escudo de Cinza", descricao: "Um escudo simples.", imagem: null },
+];
+
 // Estado interno de movimento do jogador no tabuleiro.
 // Estado local de movimento do personagem, incluindo animações e escolhas de caminho.
 let controleMovimento = {
@@ -68,7 +75,12 @@ function gerarMalhaOrganica() {
       else if (idCounter % 6 === 0) tipo = CASAS.COMBAT;
       else if (idCounter % 13 === 0) tipo = CASAS.RECOVERY;
 
-      casas.push({ id: idCounter, c, r, x, y, tipo, proximas: [] });
+      const itemReward =
+        tipo === CASAS.COMBAT
+          ? { ...ITENS_EXEMPLO_FASE1[idCounter % ITENS_EXEMPLO_FASE1.length] }
+          : null;
+
+      casas.push({ id: idCounter, c, r, x, y, tipo, itemReward, proximas: [] });
       idCounter++;
     }
   }
@@ -401,6 +413,8 @@ function aplicarEfeitoDaCasa(casa) {
     }
   } else if (casa.tipo === CASAS.COMBAT) {
     if (stateGlobal) {
+      stateGlobal.combatHouseType = "combat";
+      stateGlobal.itemReward = casa.itemReward || { ...ITENS_EXEMPLO_FASE1[0] };
       stateGlobal.proximaCena = "combat";
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null; // força reinicializar o combate na próxima cena
@@ -408,6 +422,8 @@ function aplicarEfeitoDaCasa(casa) {
     }
   } else if (casa.tipo === CASAS.BOSS) {
     if (stateGlobal) {
+      stateGlobal.combatHouseType = "boss";
+      stateGlobal.itemReward = null;
       stateGlobal.proximaCena = "combat";
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null;

@@ -16,7 +16,6 @@ const BOTAO_SOCO = {
   height: BTN_H,
 };
 
-// Novo botão CONTINUAR que aparecerá no centro da tela
 const BOTAO_CONTINUAR = {
   x: 760, // Centralizado no eixo X
   y: 490, // Centralizado no eixo Y

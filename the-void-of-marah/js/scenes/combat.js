@@ -48,7 +48,6 @@ function iniciarCombate(state) {
   state.combat = turnManager.createCombatState(state);
 }
 
-// Desenha o plano de fundo do combate e os "quadrados grandes" dos personagens.
 function desenharCenarioCombate(ctx, state) {
   ctx.fillStyle = "#a4c3f2";
   ctx.fillRect(0, 0, 1920, 1080);

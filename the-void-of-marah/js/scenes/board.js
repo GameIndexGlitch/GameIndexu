@@ -13,14 +13,22 @@ const CASAS = {
 };
 
 const ITENS_EXEMPLO_FASE1 = [
-  { nome: "Fragmento Vermelho", descricao: "Fragmento brilhante.", imagem: null },
-  { nome: "Bomba de Fumaça", descricao: "Bomba de brinquedo. Será que funciona?", imagem: null },
+  {
+    nome: "Fragmento Vermelho",
+    descricao: "Fragmento brilhante.",
+    imagem: null,
+  },
+  {
+    nome: "Bomba de Fumaça",
+    descricao: "Bomba de brinquedo. Será que funciona?",
+    imagem: null,
+  },
   { nome: "Lâmina Brilhante", descricao: "Pedaço de estilete.", imagem: null },
   { nome: "Escudo de Cinza", descricao: "Um escudo simples.", imagem: null },
 ];
 
-// Estado interno de movimento do jogador no tabuleiro.
-// Estado local de movimento do personagem, incluindo animações e escolhas de caminho.
+let tempoFlutuacao = 0;
+
 let controleMovimento = {
   passosRestantes: 0,
   timerAndar: 0,
@@ -36,8 +44,6 @@ let stateGlobal = null;
 let mouseXGlobal = 0;
 let mouseYGlobal = 0;
 
-// Gera o layout da fase 1 usando um grid com colunas e offsets de linha.
-// Gera o layout de casas para a fase 1 usando colunas com offsets de linha definidos.
 function gerarMalhaOrganica() {
   const layoutGrid = [
     [0],
@@ -56,58 +62,43 @@ function gerarMalhaOrganica() {
     [-1, 1],
     [0],
   ];
-
   let casas = [];
   let idCounter = 0;
-
   for (let c = 0; c < layoutGrid.length; c++) {
     for (let i = 0; i < layoutGrid[c].length; i++) {
       let r = layoutGrid[c][i];
-
       let x = 150 + c * 115;
       let y = 540 + r * 55;
-
       let tipo = CASAS.NORMAL;
       if (c === 0) tipo = CASAS.CHECKPOINT;
       else if (c === 14) tipo = CASAS.BOSS;
       else if (c === 8 && r === 0) tipo = CASAS.RECOVERY;
-      
       else if (
-        (c === 3 && (r === -1 || r === 1)) || // Parede nos caminhos internos iniciais
-        (c === 9 && (r === -1 || r === 1)) || // Parede nos caminhos internos finais
-        (c === 11 && (r === -3 || r === 3))   // Parede bloqueando quem tenta fugir pelas pontas
-      ) {
+        (c === 3 && (r === -1 || r === 1)) ||
+        (c === 9 && (r === -1 || r === 1)) ||
+        (c === 11 && (r === -3 || r === 3))
+      )
         tipo = CASAS.COMBAT;
-      } 
-      // -----------------------------------------------------------------
-      
       else if (idCounter % 9 === 0) tipo = CASAS.GACHA;
       else if (idCounter % 13 === 0) tipo = CASAS.RECOVERY;
-
       const itemReward =
         tipo === CASAS.COMBAT
           ? { ...ITENS_EXEMPLO_FASE1[idCounter % ITENS_EXEMPLO_FASE1.length] }
           : null;
-
       casas.push({ id: idCounter, c, r, x, y, tipo, itemReward, proximas: [] });
       idCounter++;
     }
   }
-
   casas.forEach((casa) => {
     let casasNaProximaColuna = casas.filter((n) => n.c === casa.c + 1);
     casasNaProximaColuna.forEach((proxima) => {
-      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1) {
+      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1)
         casa.proximas.push(proxima.id);
-      }
     });
   });
-
   return casas;
 }
 
-// Gera o layout da fase 2, mantendo o estilo orgânico com nova distribuição de caminhos.
-// Gera o layout de casas para a fase 2 mantendo estilo orgânico e distribuindo mais caminhos.
 function gerarMalhaOrganicaFase2() {
   const layoutGrid = [
     [0],
@@ -126,17 +117,13 @@ function gerarMalhaOrganicaFase2() {
     [-1, 1],
     [0],
   ];
-
   let casas = [];
   let idCounter = 0;
-
   for (let c = 0; c < layoutGrid.length; c++) {
     for (let i = 0; i < layoutGrid[c].length; i++) {
       let r = layoutGrid[c][i];
-
       let x = 130 + c * 120;
       let y = 520 + r * 55;
-
       let tipo = CASAS.NORMAL;
       if (c === 0) tipo = CASAS.CHECKPOINT;
       else if (c === layoutGrid.length - 1) tipo = CASAS.BOSS;
@@ -145,26 +132,20 @@ function gerarMalhaOrganicaFase2() {
       else if (idCounter % 7 === 0) tipo = CASAS.GACHA;
       else if (idCounter % 5 === 0) tipo = CASAS.COMBAT;
       else if (idCounter % 11 === 0) tipo = CASAS.RECOVERY;
-
       casas.push({ id: idCounter, c, r, x, y, tipo, proximas: [] });
       idCounter++;
     }
   }
-
   casas.forEach((casa) => {
     let casasNaProximaColuna = casas.filter((n) => n.c === casa.c + 1);
     casasNaProximaColuna.forEach((proxima) => {
-      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1) {
+      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1)
         casa.proximas.push(proxima.id);
-      }
     });
   });
-
   return casas;
 }
 
-// Gera o layout da fase 3 com uma malha semelhante às fases anteriores para manter coesão visual.
-// Gera o layout de casas para a fase 3 usando o mesmo estilo orgânico das fases anteriores.
 function gerarMalhaOrganicaFase3() {
   const layoutGrid = [
     [0],
@@ -179,18 +160,13 @@ function gerarMalhaOrganicaFase3() {
     [-1, 1],
     [0],
   ];
-
   let casas = [];
   let idCounter = 0;
-
   for (let c = 0; c < layoutGrid.length; c++) {
     for (let i = 0; i < layoutGrid[c].length; i++) {
       let r = layoutGrid[c][i];
-
-      // --- AJUSTE APENAS AQUI: Mudei de 140 para 350 ---
       let x = 350 + c * 120;
       let y = 520 + r * 55;
-
       let tipo = CASAS.NORMAL;
       if (c === 0) tipo = CASAS.CHECKPOINT;
       else if (c === layoutGrid.length - 1) tipo = CASAS.BOSS;
@@ -199,21 +175,17 @@ function gerarMalhaOrganicaFase3() {
       else if (idCounter % 8 === 0) tipo = CASAS.GACHA;
       else if (idCounter % 5 === 0) tipo = CASAS.COMBAT;
       else if (idCounter % 10 === 0) tipo = CASAS.RECOVERY;
-
       casas.push({ id: idCounter, c, r, x, y, tipo, proximas: [] });
       idCounter++;
     }
   }
-
   casas.forEach((casa) => {
     let casasNaProximaColuna = casas.filter((n) => n.c === casa.c + 1);
     casasNaProximaColuna.forEach((proxima) => {
-      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1) {
+      if (proxima.r === casa.r - 1 || proxima.r === casa.r + 1)
         casa.proximas.push(proxima.id);
-      }
     });
   });
-
   return casas;
 }
 
@@ -221,36 +193,29 @@ const MAPA_FLUXO_FASE1 = {
   nome: "The Void - Ruínas Flutuantes",
   casas: gerarMalhaOrganica(),
 };
-
 const MAPA_FLUXO_FASE2 = {
   nome: "The Void - Labirinto de Éclipse",
   casas: gerarMalhaOrganicaFase2(),
 };
-
 const MAPA_FLUXO_FASE3 = {
   nome: "The Void - Espiral Abissal",
   casas: gerarMalhaOrganicaFase3(),
 };
 
-// Seleciona o mapa do tabuleiro correto com base na fase atual do jogo.
-// Retorna o mapa de fluxo correto com base na fase atual do jogo.
 function getMapaFluxo(state) {
   if (state?.fase === 3) return MAPA_FLUXO_FASE3;
   return state?.fase === 2 ? MAPA_FLUXO_FASE2 : MAPA_FLUXO_FASE1;
 }
 
-// Renderiza o tabuleiro, incluindo fundo, conexões, casas, personagem, HUD e botão de rolar dado.
-// Desenha a cena principal do tabuleiro: fundo, caminhos, casas, personagem e HUD.
 function renderBoard(ctx, assets, state, mouseX, mouseY) {
   stateGlobal = state;
   mouseXGlobal = mouseX;
   mouseYGlobal = mouseY;
-
   const mapa = getMapaFluxo(state);
-
-  if (assets.fundoBoard && assets.fundoBoard.complete) {
+  if (assets.fundoBoard && assets.fundoBoard.complete)
     ctx.drawImage(assets.fundoBoard, 0, 0, 1920, 1080);
-  }
+
+  tempoFlutuacao += 0.05;
 
   desenharConexoes(ctx, mapa);
 
@@ -258,27 +223,28 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
     let scale = 1.0;
     if (casa.tipo === CASAS.BOSS) scale = 1.3;
     else if (casa.tipo === CASAS.RECOVERY) scale = 1.2;
-    desenharSombra(ctx, casa.x, casa.y, scale);
-  });
 
-  processarMovimentoBoard(state, mapa);
+    // Calcula offset de flutuação
+    const offsetY = Math.sin(tempoFlutuacao + casa.id) * 5;
 
-  mapa.casas.forEach((casa) => {
+    desenharSombra(ctx, casa.x, casa.y + offsetY, scale);
+
     const ehOpcao = state.opcoesDeCaminho?.includes(casa.id);
     const dx = Math.abs(mouseX - casa.x) / (LARGURA_PISO / 2);
     const dy = Math.abs(mouseY - casa.y) / (ALTURA_PISO / 2);
     const isHover = dx + dy <= 1;
 
-    let corFinal = casa.tipo.cor;
-    if (ehOpcao) corFinal = isHover ? "#ffffff" : "#aaaaaa";
-
-    let scale = 1.0;
-    if (casa.tipo === CASAS.BOSS) scale = 1.3;
-    else if (casa.tipo === CASAS.RECOVERY) scale = 1.2;
-
-    desenharBloco(ctx, casa.x, casa.y, corFinal, ehOpcao || isHover, scale);
+    desenharBloco(
+      ctx,
+      casa.x,
+      casa.y + offsetY,
+      ehOpcao || isHover ? "#ffffff" : casa.tipo.cor,
+      ehOpcao || isHover,
+      scale,
+    );
   });
 
+  processarMovimentoBoard(state, mapa);
   renderPersonagem(ctx, assets, state, mapa);
   renderHUD(ctx, state);
 
@@ -291,19 +257,15 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
     ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
     ctx.fillRect(860, 950, 200, 60);
-
     ctx.fillStyle = "black";
     ctx.font = "bold 24px Arial";
     ctx.fillText("ROLAR DADO", 960, 980);
-
     ctx.restore();
   }
 }
 
-// Inicia a rolagem do dado e bloqueia novas ações até o resultado ser definido.
 function rolarDado() {
   if (
     controleMovimento.passosRestantes > 0 ||
@@ -312,19 +274,14 @@ function rolarDado() {
     controleMovimento.animandoPulo
   )
     return;
-
   controleMovimento.dadoAtivo = true;
   const container = document.getElementById("dado-container");
   const dado = document.getElementById("dado");
-
   container.style.display = "block";
   dado.classList.add("rolando");
-
   const resultado = Math.floor(Math.random() * 6) + 1;
-
   setTimeout(() => {
     dado.classList.remove("rolando");
-
     switch (resultado) {
       case 1:
         dado.style.transform = "rotateY(0deg)";
@@ -345,7 +302,6 @@ function rolarDado() {
         dado.style.transform = "rotateX(90deg)";
         break;
     }
-
     setTimeout(() => {
       container.style.display = "none";
       controleMovimento.passosRestantes = resultado;
@@ -354,53 +310,37 @@ function rolarDado() {
   }, 1500);
 }
 
-// Atualiza o movimento do jogador no tabuleiro: anima salto, executa passos e solicita escolha quando necessário.
 function processarMovimentoBoard(state, mapa) {
   if (controleMovimento.animandoPulo) {
     controleMovimento.puloProgresso += 0.05;
-
     if (controleMovimento.puloProgresso >= 1) {
       controleMovimento.puloProgresso = 1;
       controleMovimento.animandoPulo = false;
       state.casaAtual = controleMovimento.casaDestino;
       controleMovimento.passosRestantes--;
-
       const novaCasa = mapa.casas.find((c) => c.id === state.casaAtual);
-
-      // --- MÁGICA AQUI ---
-      // Se for Combate ou Boss, interrompe a caminhada na hora e puxa a luta!
-      if (novaCasa.tipo === CASAS.COMBAT || novaCasa.tipo === CASAS.BOSS) {
+      if (novaCasa.tipo === CASAS.COMBAT || novaCasa.tipo === CASAS.BOSS)
         aplicarEfeitoDaCasa(novaCasa);
-      } 
-      // Se for uma casa comum (Gacha, Recovery), só ativa se os passos acabarem
-      else if (controleMovimento.passosRestantes === 0) {
+      else if (controleMovimento.passosRestantes === 0)
         aplicarEfeitoDaCasa(novaCasa);
-      }
     }
     return;
   }
-
-  // Só continua andando se tiver passos, se não estiver esperando escolha
-  // E se a tela não estiver em transição (indo pro combate)
   if (
     controleMovimento.passosRestantes <= 0 ||
     controleMovimento.esperandoEscolha ||
     state.emTransicao
   )
     return;
-
   controleMovimento.timerAndar++;
   if (controleMovimento.timerAndar < 10) return;
   controleMovimento.timerAndar = 0;
-
   const casaAtualDados = mapa.casas.find((c) => c.id === state.casaAtual);
-
   if (casaAtualDados.proximas.length === 0) {
     controleMovimento.passosRestantes = 0;
     aplicarEfeitoDaCasa(casaAtualDados);
     return;
   }
-
   if (casaAtualDados.proximas.length === 1) {
     controleMovimento.casaOrigem = state.casaAtual;
     controleMovimento.casaDestino = casaAtualDados.proximas[0];
@@ -412,7 +352,6 @@ function processarMovimentoBoard(state, mapa) {
   }
 }
 
-// Executa o evento vinculado à casa atual: gacha, combate, boss ou recuperação.
 function aplicarEfeitoDaCasa(casa) {
   if (casa.tipo === CASAS.GACHA) {
     if (stateGlobal) {
@@ -426,7 +365,7 @@ function aplicarEfeitoDaCasa(casa) {
       stateGlobal.itemReward = casa.itemReward || { ...ITENS_EXEMPLO_FASE1[0] };
       stateGlobal.proximaCena = "combat";
       stateGlobal.emTransicao = true;
-      stateGlobal.combat = null; // força reinicializar o combate na próxima cena
+      stateGlobal.combat = null;
       stateGlobal.combatBoss = false;
     }
   } else if (casa.tipo === CASAS.BOSS) {
@@ -437,28 +376,24 @@ function aplicarEfeitoDaCasa(casa) {
       stateGlobal.emTransicao = true;
       stateGlobal.combat = null;
       stateGlobal.combatBoss = true;
-      if (stateGlobal.fase === 1) {
-        stateGlobal.bossTransition = "paraFase2";
-      } else if (stateGlobal.fase === 2) {
-        stateGlobal.bossTransition = "paraFase3";
-      } else {
-        stateGlobal.bossTransition = "reiniciar";
-      }
+      stateGlobal.bossTransition =
+        stateGlobal.fase === 1
+          ? "paraFase2"
+          : stateGlobal.fase === 2
+            ? "paraFase3"
+            : "reiniciar";
     }
   } else if (casa.tipo === CASAS.RECOVERY) {
-    if (stateGlobal && stateGlobal.stats) {
+    if (stateGlobal && stateGlobal.stats)
       stateGlobal.stats.vida = stateGlobal.stats.vidaMax;
-    }
   }
 }
 
-// Desenha linhas tracejadas entre casas conectadas para mostrar os caminhos possíveis.
 function desenharConexoes(ctx, mapa) {
   ctx.save();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
   ctx.lineWidth = 5;
   ctx.setLineDash([10, 10]);
-
   mapa.casas.forEach((casa) => {
     casa.proximas.forEach((proximaId) => {
       const destino = mapa.casas.find((c) => c.id === proximaId);
@@ -473,17 +408,14 @@ function desenharConexoes(ctx, mapa) {
   ctx.restore();
 }
 
-// Desenha sombra por baixo do piso para criar sensação de profundidade.
 function desenharSombra(ctx, x, y, scale = 1.0) {
   const w = LARGURA_PISO * scale;
   const h = ALTURA_PISO * scale;
   const dropDist = 45;
-
   ctx.save();
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.shadowBlur = 15;
   ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-
   ctx.beginPath();
   ctx.moveTo(x, y + dropDist - h / 2);
   ctx.lineTo(x + w / 2, y + dropDist);
@@ -494,16 +426,13 @@ function desenharSombra(ctx, x, y, scale = 1.0) {
   ctx.restore();
 }
 
-// Desenha cada bloco do tabuleiro com perspectiva e brilho, alterando o estilo se estiver em destaque.
 function desenharBloco(ctx, x, y, corBase, destaque, scale = 1.0) {
   const w = LARGURA_PISO * scale;
   const h = ALTURA_PISO * scale;
   const esp = ESPESSURA * scale;
-
   ctx.save();
   ctx.lineJoin = "round";
-
-  ctx.fillStyle = escurecerCor(corBase, 50);
+  ctx.fillStyle = escurecerCor(corBase, 30);
   ctx.beginPath();
   ctx.moveTo(x - w / 2, y);
   ctx.lineTo(x, y + h / 2);
@@ -513,11 +442,14 @@ function desenharBloco(ctx, x, y, corBase, destaque, scale = 1.0) {
   ctx.lineTo(x - w / 2, y + esp);
   ctx.closePath();
   ctx.fill();
-
-  ctx.fillStyle = corBase;
+  const grad = ctx.createRadialGradient(x, y - h / 4, h / 4, x, y, h);
+  grad.addColorStop(0, "#ffffff");
+  grad.addColorStop(0.5, corBase);
+  grad.addColorStop(1, escurecerCor(corBase, 40));
+  ctx.fillStyle = grad;
   if (destaque) {
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "white";
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
   }
   ctx.beginPath();
   ctx.moveTo(x, y - h / 2);
@@ -526,25 +458,19 @@ function desenharBloco(ctx, x, y, corBase, destaque, scale = 1.0) {
   ctx.lineTo(x - w / 2, y);
   ctx.closePath();
   ctx.fill();
-
-  ctx.strokeStyle = "rgba(0,0,0,0.15)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.restore();
 }
 
-// Desenha o personagem na casa atual ou no arco de salto durante a animação.
 function renderPersonagem(ctx, assets, state, mapa) {
   const img =
     state.personagemSelecionado === "maya" ? assets.card3 : assets.card4;
   if (!img || !img.complete) return;
-
-  ctx.save(); // Salva o estado atual do contexto
-
-  // ATIVA a suavização especificamente para os personagens chibi e blablabla
+  ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-
   if (controleMovimento.animandoPulo) {
     const casaOrigem = mapa.casas.find(
       (c) => c.id === controleMovimento.casaOrigem,
@@ -552,73 +478,51 @@ function renderPersonagem(ctx, assets, state, mapa) {
     const casaDestino = mapa.casas.find(
       (c) => c.id === controleMovimento.casaDestino,
     );
-
     if (casaOrigem && casaDestino) {
       const p = controleMovimento.puloProgresso;
       const lerpX = casaOrigem.x + (casaDestino.x - casaOrigem.x) * p;
       const lerpY = casaOrigem.y + (casaDestino.y - casaOrigem.y) * p;
-      const alturaPulo = 80;
-      const arcoY = Math.sin(p * Math.PI) * alturaPulo;
-
+      const arcoY = Math.sin(p * Math.PI) * 80;
       ctx.drawImage(img, lerpX - 69, lerpY - 170 - arcoY, 130, 195);
     }
   } else {
     const casa = mapa.casas.find((c) => c.id === state.casaAtual);
     if (casa) {
-      ctx.drawImage(img, casa.x - 69, casa.y - 170, 130, 195);
+      const offsetY = Math.sin(tempoFlutuacao + casa.id) * 5;
+      ctx.drawImage(img, casa.x - 69, casa.y - 170 + offsetY, 130, 195);
     }
   }
-
-  ctx.restore(); // Restaura o contexto (o que desativa a suavização para o resto do tabuleiro)
+  ctx.restore();
 }
 
-// Mostra dados do jogador como nome, vida e defesa no painel inferior.
 function renderHUD(ctx, state) {
   ctx.save();
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-
-  // Garante que a suavização de imagem está desligada para os ícones ficarem nítidos
   ctx.imageSmoothingEnabled = false;
-
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-  
-  // O último número (15) é o raio da curva. Quanto maior, mais redondo.
   ctx.beginPath();
   ctx.roundRect(50, 880, 480, 150, 15);
   ctx.fill();
-
   ctx.fillStyle = "white";
-  // Mudança da fonte para Consolas (com fallback para monospace caso falhe)
   ctx.font = "bold 36px Consolas, monospace";
   ctx.fillText(state.personagemSelecionado?.toUpperCase() || "", 80, 910);
-
-  // Mudança da fonte para Consolas
   ctx.font = "24px Consolas, monospace";
-
-  if (assets.iconVida && assets.iconVida.complete) {
+  if (assets.iconVida && assets.iconVida.complete)
     ctx.drawImage(assets.iconVida, 80, 965, 32, 32);
-  }
   ctx.fillStyle = "#ff5555";
   ctx.fillText(`VIDA: ${state.stats.vida}/${state.stats.vidaMax}`, 120, 970);
-
-  // Posicionado no X: 290 (mesma coluna da defesa) e Y: 910 (acima dela)
-  if (assets.iconDano && assets.iconDano.complete) {
+  if (assets.iconDano && assets.iconDano.complete)
     ctx.drawImage(assets.iconDano, 290, 910, 32, 32);
-  }
-  ctx.fillStyle = "#ffcc00"; // Cor amarelo/laranja para destacar o dano
+  ctx.fillStyle = "#ffcc00";
   ctx.fillText(`DANO: ${state.stats.ataque}`, 330, 915);
-
-  if (assets.iconDefesa && assets.iconDefesa.complete) {
+  if (assets.iconDefesa && assets.iconDefesa.complete)
     ctx.drawImage(assets.iconDefesa, 290, 965, 32, 32);
-  }
   ctx.fillStyle = "#55ccff";
   ctx.fillText(`DEFESA: ${state.stats.defesa}`, 330, 970);
-
   ctx.restore();
 }
 
-// Gera uma variação mais escura de uma cor hexadecimal para criar sombras e bordas.
 function escurecerCor(hex, amt) {
   let num = parseInt(hex.slice(1), 16),
     r = (num >> 16) - amt,
@@ -639,7 +543,6 @@ function escurecerCor(hex, amt) {
 
 window.addEventListener("mousedown", () => {
   if (!stateGlobal || stateGlobal.cena !== "jogo") return;
-
   if (
     controleMovimento.passosRestantes === 0 &&
     !controleMovimento.esperandoEscolha &&
@@ -656,20 +559,17 @@ window.addEventListener("mousedown", () => {
       return;
     }
   }
-
   if (controleMovimento.esperandoEscolha && stateGlobal.opcoesDeCaminho) {
     const mapa = getMapaFluxo(stateGlobal);
     mapa.casas.forEach((casa) => {
       if (stateGlobal.opcoesDeCaminho.includes(casa.id)) {
         const dx = Math.abs(mouseXGlobal - casa.x) / (LARGURA_PISO / 2);
         const dy = Math.abs(mouseYGlobal - casa.y) / (ALTURA_PISO / 2);
-
         if (dx + dy <= 1) {
           controleMovimento.casaOrigem = stateGlobal.casaAtual;
           controleMovimento.casaDestino = casa.id;
           controleMovimento.animandoPulo = true;
           controleMovimento.puloProgresso = 0;
-
           controleMovimento.esperandoEscolha = false;
           stateGlobal.opcoesDeCaminho = null;
         }

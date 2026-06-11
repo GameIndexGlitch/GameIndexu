@@ -3,8 +3,10 @@ const BTN_W = 380;
 const BTN_H = 100; 
 const BTN_SPACING = 20;
 
-const MENU_X = 750; 
-const MENU_Y = 800; 
+// Botões na DIREITA (Embaixo da barra de vida do jogador)
+// 970 centraliza perfeitamente com a borda direita da caixa do inimigo
+const MENU_X = 970; 
+const MENU_Y = 720; 
 
 // O primeiro quadrado da esquerda em cima (Botão Soco)
 const BOTAO_SOCO = {
@@ -16,8 +18,8 @@ const BOTAO_SOCO = {
 
 // Novo botão CONTINUAR que aparecerá no centro da tela
 const BOTAO_CONTINUAR = {
-  x: 760, // Centralizado no eixo X (1920/2 - 200)
-  y: 490, // Centralizado no eixo Y (1080/2 - 50)
+  x: 760, // Centralizado no eixo X
+  y: 490, // Centralizado no eixo Y
   width: 400,
   height: 100,
 };
@@ -55,11 +57,11 @@ function desenharCenarioCombate(ctx, state) {
   ctx.fillRect(50, 50, 1820, 980);
 
   ctx.fillStyle = "#1f1f2b";
-  // Quadrado do Inimigo (Topo Direita)
-  ctx.fillRect(1400, 80, 350, 350);
+  // Quadrado do Inimigo
+  ctx.fillRect(1250, 80, 350, 350);
   
-  // Quadrado do Jogador (Meio Esquerda)
-  ctx.fillRect(150, 450, 350, 350);
+  // Quadrado do Jogador (Movido bem mais para a direita, seguindo a sua seta vermelha!)
+  ctx.fillRect(450, 400, 350, 350);
 }
 
 // Desenha o HUD de combate com nome, defesa, barras de vida e mensagem.
@@ -67,85 +69,114 @@ function desenharHUDCombate(ctx, state) {
   const combat = state.combat;
   if (!combat) return;
 
-  // Desativa a suavização para garantir que as espadas/escudos/corações fiquem nítidos
   ctx.imageSmoothingEnabled = false;
 
-  // ---- STATUS DO INIMIGO ----
-  const enemyBarY = 100; 
-  
-  // Barra Esticada do Inimigo
-  desenharBarraVida(ctx, 350, enemyBarY, 1000, 40, combat.enemyHP, combat.enemyMaxHP, "#ff4c4c");
-  
-  // Coração e HP do Inimigo (Dentro da barra)
-  if (assets.iconVida && assets.iconVida.complete) {
-    ctx.drawImage(assets.iconVida, 360, enemyBarY + 4, 32, 32);
-  }
-  ctx.font = "bold 24px sans-serif";
-  ctx.fillStyle = "white";
-  ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, 400, enemyBarY + 28);
+  // ==========================================
+  // ---- STATUS DO INIMIGO (ESQUERDA DA CAIXA)
+  // ==========================================
+  const enemyBarW = 780;
+  // Agora a barra termina cravada no 1200, que é a nova posição da caixa do inimigo
+  const enemyStartX = 1200 - enemyBarW; 
+  const enemyTextoY = 105;
+  const enemyBarY = 120; 
 
-  // Nome e Defesa do Inimigo
   ctx.fillStyle = "#1f1f2b";
-  ctx.font = "bold 38px sans-serif";
-  ctx.textAlign = "right"; 
-  
-  // O inimigo é alinhado pela direita, então calculamos o tamanho do texto para pôr o ícone do lado certo
+  ctx.font = "bold 38px Consolas, monospace";
+
+  // Nome do Inimigo (Ancorado na Esquerda)
+  ctx.textAlign = "left"; 
+  const textoNomeInimigo = combat.enemyName || "Inimigo";
+  ctx.fillText(textoNomeInimigo, enemyStartX, enemyTextoY);
+
+  // Defesa do Inimigo (Ancorado na Direita)
+  ctx.textAlign = "right";
   const textoDefesaInimigo = `DEFESA: ${combat.enemyDefense || 0}`;
-  ctx.fillText(textoDefesaInimigo, 1350, enemyBarY + 80);
+  ctx.fillText(textoDefesaInimigo, enemyStartX + enemyBarW, enemyTextoY);
   
-  const larguraDefesaInimigo = ctx.measureText(textoDefesaInimigo).width;
-  
-  // Ícone do Escudo do Inimigo
+  // Ícone Defesa Inimigo
+  const wDefEnemy = ctx.measureText(textoDefesaInimigo).width;
   if (assets.iconDefesa && assets.iconDefesa.complete) {
-    ctx.drawImage(assets.iconDefesa, 1350 - larguraDefesaInimigo - 45, enemyBarY + 50, 32, 32);
+    ctx.drawImage(assets.iconDefesa, enemyStartX + enemyBarW - wDefEnemy - 45, enemyTextoY - 32, 32, 32);
   }
   
-  // Nome do Inimigo
-  ctx.fillText(combat.enemyName || "Inimigo", 1350 - larguraDefesaInimigo - 65, enemyBarY + 80);
-  
-  ctx.textAlign = "left"; // Restaura o alinhamento para o restante
+  // Separador Central (Inimigo)
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.fillText("|", enemyStartX + (enemyBarW / 2), enemyTextoY);
 
-
-  // ---- STATUS DO JOGADOR ----
-  const playerBarY = 740;
-  const textoY = playerBarY - 20;
-  const iconeY = playerBarY - 48; // Sobe o ícone uns pixels para alinhar verticalmente com a fonte
-
-  ctx.fillStyle = "#1f1f2b";
-  ctx.font = "bold 38px sans-serif";
-  const nomePlayer = state.personagemSelecionado?.toUpperCase() || "PLAYER";
+  // Barra de Vida do Inimigo
+  ctx.textAlign = "left"; // Restaura o alinhamento
+  desenharBarraVida(ctx, enemyStartX, enemyBarY, enemyBarW, 40, combat.enemyHP, combat.enemyMaxHP, "#ff4c4c");
   
-  // 1. Nome do Jogador
-  ctx.fillText(nomePlayer, 550, textoY);
-  
-  // 2. Escudo e Texto da Defesa
-  if (assets.iconDefesa && assets.iconDefesa.complete) {
-    ctx.drawImage(assets.iconDefesa, 730, iconeY, 32, 32);
-  }
-  ctx.fillText(`DEFESA: ${combat.playerDefense || state.stats?.defesa || 0}`, 770, textoY);
-  
-  // 3. Espada e Texto do Dano
-  if (assets.iconDano && assets.iconDano.complete) {
-    ctx.drawImage(assets.iconDano, 1000, iconeY, 32, 32);
-  }
-  ctx.fillText(`DANO: ${state.stats?.ataque || 0}`, 1040, textoY);
-  
-  // Barra Esticada do Jogador
-  desenharBarraVida(ctx, 550, playerBarY, 1000, 40, combat.playerHP, combat.playerMaxHP, "#66b3ff");
-  
-  // 4. Coração e HP do Jogador (Dentro da barra)
   if (assets.iconVida && assets.iconVida.complete) {
-    ctx.drawImage(assets.iconVida, 560, playerBarY + 4, 32, 32);
+    ctx.drawImage(assets.iconVida, enemyStartX + 10, enemyBarY + 4, 32, 32);
   }
-  ctx.font = "bold 24px sans-serif";
+  ctx.font = "bold 24px Consolas, monospace";
   ctx.fillStyle = "white";
-  ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, 600, playerBarY + 28);
+  ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, enemyStartX + 50, enemyBarY + 28);
 
 
-  // ---- CAIXA DE MENSAGEM ----
-  ctx.font = "28px sans-serif";
+  // ==========================================
+  // ---- STATUS DO JOGADOR (DIREITA) ---------
+  // ==========================================
+  const playerStartX = MENU_X; // 970 (Sincronizado com os botões)
+  const playerBarW = 780; // Largura exata de 2 botões + espaçamento
+  const playerTextoY = 645; 
+  const playerBarY = 660; 
+
   ctx.fillStyle = "#1f1f2b";
-  wrapText(ctx, combat.mensagem || "", 150, 860, 350, 36);
+  ctx.font = "bold 38px Consolas, monospace";
+  
+  const nomePlayer = state.personagemSelecionado?.toUpperCase() || "PLAYER";
+  const strDefesa = `DEFESA: ${combat.playerDefense || state.stats?.defesa || 0}`;
+  const strDano = `DANO: ${state.stats?.ataque || 0}`;
+  
+  // 1. Nome do Jogador (Ancorado na Esquerda da Barra)
+  ctx.textAlign = "left";
+  ctx.fillText(nomePlayer, playerStartX, playerTextoY);
+
+  // 2. Dano do Jogador (Ancorado na Direita da Barra)
+  ctx.textAlign = "right";
+  ctx.fillText(strDano, playerStartX + playerBarW, playerTextoY);
+  const wDano = ctx.measureText(strDano).width;
+  if (assets.iconDano && assets.iconDano.complete) {
+    ctx.drawImage(assets.iconDano, playerStartX + playerBarW - wDano - 45, playerTextoY - 32, 32, 32);
+  }
+
+  // 3. Defesa do Jogador (Ancorado no Centro da Barra)
+  ctx.textAlign = "center";
+  const centerPlayerX = playerStartX + (playerBarW / 2);
+  ctx.fillText(strDefesa, centerPlayerX, playerTextoY);
+  const wDefPlayer = ctx.measureText(strDefesa).width;
+  if (assets.iconDefesa && assets.iconDefesa.complete) {
+    ctx.drawImage(assets.iconDefesa, centerPlayerX - (wDefPlayer / 2) - 45, playerTextoY - 32, 32, 32);
+  }
+
+  // 4. Separadores de estilo
+  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.fillText("|", playerStartX + (playerBarW * 0.28), playerTextoY);
+  ctx.fillText("|", playerStartX + (playerBarW * 0.72), playerTextoY);
+
+  // 5. Barra de Vida do Jogador
+  ctx.textAlign = "left"; // Restaura
+  desenharBarraVida(ctx, playerStartX, playerBarY, playerBarW, 40, combat.playerHP, combat.playerMaxHP, "#66b3ff");
+  
+  if (assets.iconVida && assets.iconVida.complete) {
+    ctx.drawImage(assets.iconVida, playerStartX + 10, playerBarY + 4, 32, 32);
+  }
+  ctx.font = "bold 24px Consolas, monospace";
+  ctx.fillStyle = "white";
+  ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, playerStartX + 50, playerBarY + 28);
+
+
+  // ==========================================
+  // ---- LOG DE BATALHA (EMBAIXO DO JOGADOR) -
+  // ==========================================
+  ctx.font = "28px Consolas, monospace";
+  ctx.fillStyle = "#1f1f2b";
+  // O texto fica na esquerda (150), exatamente embaixo do quadrado do personagem
+  wrapText(ctx, combat.mensagem || "", 150, 800, 750, 36);
+
 
   // ---- ITEM RECEBIDO AO VENCER O COMBATE ----
   if (combat.finalizado && combat.venceu && combat.itemRecebido) {
@@ -165,13 +196,13 @@ function desenharHUDCombate(ctx, state) {
     ctx.strokeRect(itemCardX, itemCardY, itemCardW, itemCardH);
 
     ctx.fillStyle = "#1f1f2b";
-    ctx.font = "bold 28px sans-serif";
+    ctx.font = "bold 28px Consolas, monospace"; 
     ctx.fillText("Item recebido", itemCardX + 30, itemCardY + 40);
 
-    ctx.font = "bold 24px sans-serif";
+    ctx.font = "bold 24px Consolas, monospace";
     ctx.fillText(item.nome || "Item exemplo", itemCardX + 30, itemCardY + 82);
 
-    ctx.font = "18px sans-serif";
+    ctx.font = "18px Consolas, monospace";
     ctx.fillText(item.descricao || "Espaço para trocar depois.", itemCardX + 30, itemCardY + 118, itemCardW - 70);
 
     ctx.fillStyle = "#f4f4f7";
@@ -180,7 +211,7 @@ function desenharHUDCombate(ctx, state) {
     ctx.strokeRect(itemCardX + 330, itemCardY + 30, 130, 100);
 
     ctx.fillStyle = "#1f1f2b";
-    ctx.font = "bold 20px sans-serif";
+    ctx.font = "bold 20px Consolas, monospace";
     ctx.textAlign = "center";
     ctx.fillText("PNG", itemCardX + 395, itemCardY + 72);
     ctx.fillText("aqui", itemCardX + 395, itemCardY + 102);

@@ -543,6 +543,8 @@ function escurecerCor(hex, amt) {
 
 window.addEventListener("mousedown", () => {
   if (!stateGlobal || stateGlobal.cena !== "jogo") return;
+
+  // Botão Rolar Dado
   if (
     controleMovimento.passosRestantes === 0 &&
     !controleMovimento.esperandoEscolha &&
@@ -559,17 +561,25 @@ window.addEventListener("mousedown", () => {
       return;
     }
   }
+
+  // Correção aqui: Adicionamos a verificação de segurança stateGlobal.opcoesDeCaminho
   if (controleMovimento.esperandoEscolha && stateGlobal.opcoesDeCaminho) {
     const mapa = getMapaFluxo(stateGlobal);
     mapa.casas.forEach((casa) => {
-      if (stateGlobal.opcoesDeCaminho.includes(casa.id)) {
+      // Verificamos se o array existe e se contém o ID
+      if (
+        stateGlobal.opcoesDeCaminho &&
+        stateGlobal.opcoesDeCaminho.includes(casa.id)
+      ) {
         const dx = Math.abs(mouseXGlobal - casa.x) / (LARGURA_PISO / 2);
         const dy = Math.abs(mouseYGlobal - casa.y) / (ALTURA_PISO / 2);
+
         if (dx + dy <= 1) {
           controleMovimento.casaOrigem = stateGlobal.casaAtual;
           controleMovimento.casaDestino = casa.id;
           controleMovimento.animandoPulo = true;
           controleMovimento.puloProgresso = 0;
+
           controleMovimento.esperandoEscolha = false;
           stateGlobal.opcoesDeCaminho = null;
         }
@@ -577,4 +587,3 @@ window.addEventListener("mousedown", () => {
     });
   }
 });
-

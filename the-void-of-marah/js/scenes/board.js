@@ -71,8 +71,17 @@ function gerarMalhaOrganica() {
       if (c === 0) tipo = CASAS.CHECKPOINT;
       else if (c === 14) tipo = CASAS.BOSS;
       else if (c === 8 && r === 0) tipo = CASAS.RECOVERY;
+      
+      else if (
+        (c === 3 && (r === -1 || r === 1)) || // Parede nos caminhos internos iniciais
+        (c === 9 && (r === -1 || r === 1)) || // Parede nos caminhos internos finais
+        (c === 11 && (r === -3 || r === 3))   // Parede bloqueando quem tenta fugir pelas pontas
+      ) {
+        tipo = CASAS.COMBAT;
+      } 
+      // -----------------------------------------------------------------
+      
       else if (idCounter % 9 === 0) tipo = CASAS.GACHA;
-      else if (idCounter % 6 === 0) tipo = CASAS.COMBAT;
       else if (idCounter % 13 === 0) tipo = CASAS.RECOVERY;
 
       const itemReward =

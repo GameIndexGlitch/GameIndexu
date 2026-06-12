@@ -378,7 +378,8 @@ function desenharHUDCombate(ctx, state) {
   // ==========================================
   ctx.font = "28px Consolas, monospace";
   ctx.fillStyle = "#1f1f2b";
-  wrapText(ctx, combat.mensagem || "", 150, 800, 750, 36);
+  // Aumentei o eixo Y de 800 para 860 para descer o texto
+  wrapText(ctx, combat.mensagem || "", 150, 860, 750, 36);
 
   // ---- ITEM RECEBIDO AO VENCER O COMBATE ----
   if (combat.finalizado && combat.venceu && combat.itemRecebido) {
@@ -567,6 +568,20 @@ function continuarDepoisDoCombate(state) {
   }
 
   if (combat.venceu) {
+    if (combat.itemRecebido) {
+
+    if (!state.colecionaveis) {
+      state.colecionaveis = [];
+    }
+
+    const jaTem = state.colecionaveis.some(
+      item => item.nome === combat.itemRecebido.nome
+    );
+
+    if (!jaTem) {
+      state.colecionaveis.push(combat.itemRecebido);
+    }
+  }
     if (state.bossTransition === "paraFase2") {
       state.fase = 2;
       state.casaAtual = 0;
@@ -631,7 +646,7 @@ function continuarDepoisDoCombate(state) {
   requestAnimationFrame(forcarDadoNoTabuleiro);
 
   // Finaliza a cena de combate e envia para o tabuleiro
-  state.combat = null; 
+  // state.combat = null; <-- APAGUE OU COMENTE ESTA LINHA!
   state.proximaCena = "jogo";
   state.emTransicao = true;
 }

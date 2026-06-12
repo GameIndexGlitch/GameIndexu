@@ -279,6 +279,7 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
   processarMovimentoBoard(state, mapa);
   renderPersonagem(ctx, assets, state, mapa);
   renderHUD(ctx, state);
+  renderColecionaveis(ctx, assets, state);
   if (state.cena === "jogo" && !state.emTransicao) {
     if (controleMovimento.passosRestantes <= 0 && !controleMovimento.animandoPulo) {
       // Força a limpeza de estados antigos para garantir a jogabilidade
@@ -592,6 +593,41 @@ function renderHUD(ctx, state) {
     ctx.drawImage(assets.iconDefesa, 290, 965, 32, 32);
   ctx.fillStyle = "#55ccff";
   ctx.fillText(`DEFESA: ${state.stats.defesa}`, 330, 970);
+  ctx.restore();
+}
+function renderColecionaveis(ctx, assets, state) {
+
+  if (!state.colecionaveis || state.colecionaveis.length === 0) {
+    return;
+  }
+
+  const largura = 350;
+  const altura = 90;
+
+  const xPainel = 1920 - largura - 20;
+  const yPainel = 20;
+
+  ctx.save();
+
+  ctx.fillStyle = "rgba(0,0,0,0.8)";
+  ctx.fillRect(xPainel, yPainel, largura, altura);
+
+  ctx.fillStyle = "white";
+  ctx.font = "bold 20px Arial";
+  ctx.fillText("Colecionáveis", xPainel + 10, yPainel + 25);
+
+  state.colecionaveis.forEach((item, index) => {
+
+    const img = assets[item.imgId];
+
+    if (!img || !img.complete) return;
+
+    const x = xPainel + 10 + (index * 50);
+    const y = yPainel + 35;
+
+    ctx.drawImage(img, x, y, 40, 40);
+  });
+
   ctx.restore();
 }
 

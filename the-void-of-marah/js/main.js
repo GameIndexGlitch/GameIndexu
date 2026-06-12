@@ -97,6 +97,7 @@ const assets = {
   fundoCombat: new Image(),
   mayaCombat: new Image(), 
   zeckCombat: new Image(),
+  omnitrix: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -153,6 +154,7 @@ assets.tetris.src = "assets/pixel_art/gacha/tetris.png";
 assets.fundoCombat.src = "assets/bg/FundoCombat.png";
 assets.mayaCombat.src = "assets/drawings/chars/Combat/MayaCombat.png";
 assets.zeckCombat.src = "assets/drawings/chars/Combat/ZeckCombat.png";
+assets.omnitrix.src = "assets/pixel_art/gacha/omnitrix.png";
 
 
 // Inicializa o módulo de cutscenes

@@ -141,6 +141,17 @@ function finalizeBattle(battle, state, venceu) {
 
     if (itemRecebido) {
       battle.itemRecebido = itemRecebido;
+      if (!state.colecionaveis) {
+        state.colecionaveis = [];
+      }
+
+      const jaTem = state.colecionaveis.some(
+        item => item.nome === itemRecebido.nome
+      );
+
+      if (!jaTem) {
+        state.colecionaveis.push(itemRecebido);
+      }
       state.itensRecebidos = Array.isArray(state.itensRecebidos)
         ? [...state.itensRecebidos, itemRecebido]
         : [itemRecebido];

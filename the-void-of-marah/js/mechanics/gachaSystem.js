@@ -55,10 +55,10 @@ const GACHA_ITENS = [
     imgId: "fogo_das_almas" // <--- Imagem nova adicionada aqui!
   },
   {
-    nome: "Bobblehead",
+    nome: "Bubble tea",
     tipo: "colecionavel",
     valor: 0,
-    descricao: "Um boneco cabeçudo muito curioso. Apenas colecionável.",
+    descricao: "Bebida favorita do personagem.",
     cor: "#ffffff",
     imgId: "boblbleble"
   },
@@ -157,6 +157,14 @@ const GACHA_ITENS = [
     descricao: "Uma peça quadrada que não encaixa em lugar nenhum.",
     cor: "#ffffff",
     imgId: "tetris"
+  },
+  {
+    nome: "Relógio Esquisito",
+    tipo: "colecionavel",
+    valor: 0,
+    descricao: "Um dispositivo alienígena de pulso. Parece estar sem bateria.",
+    cor: "#32ff7e", // Um tom de verde para combinar
+    imgId: "omnitrix"
   }
 ];
 
@@ -166,10 +174,17 @@ function sortearItensGacha(state) {
   let ataquesDoPlayer = (state && state.ataques) ? state.ataques : ["soco"];
   
   const copias = GACHA_ITENS.filter(item => {
+    // --- BLOQUEIA OS COLECIONÁVEIS NO GACHA ---
+    // Se o tipo for colecionável, retorna false e tira da lista de sorteio
+    if (item.tipo === "colecionavel") {
+      return false; 
+    }
+
     // Se for um ataque, verifica se o jogador JÁ TEM. Se tiver, remove da caixa de sorteio!
     if (item.tipo === "novo_ataque") {
       return !ataquesDoPlayer.includes(item.ataqueId);
     }
+    
     return true; // Outros itens (poção, defesa) podem vir sempre
   });
 
@@ -184,7 +199,9 @@ function sortearItensGacha(state) {
 // Aplica o bônus do item gacha ao estado do jogador.
 function aplicarBonusGacha(state, item) {
   if (!state || !state.stats || !item) return;
-
+  if (!state.colecionaveis) {
+    state.colecionaveis = [];
+  }
   if (item.tipo === "vida") {
     state.stats.vidaMax = Math.max(1, state.stats.vidaMax + item.valor);
     state.stats.vida = Math.min(state.stats.vidaMax, state.stats.vida + item.valor);

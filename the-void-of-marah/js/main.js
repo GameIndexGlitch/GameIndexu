@@ -63,7 +63,18 @@ const assets = {
   cardGachaDef: new Image(),
   fundoGacha: new Image(),
   musica_de_fundo: new Audio("assets/sounds/phantasticbeats-rpg-city-8381.mp3"), 
-  musica_de_inicial: new Audio("assets/sounds/rubyzephyr-fantasy-rpg-exploration-v2-461303.mp3"), 
+  musica_de_inicial: new Audio("assets/sounds/rubyzephyr-fantasy-rpg-exploration-v2-461303.mp3"),
+  crystalSerpent: new Image(),
+  eclipseQueen: new Image(),
+  reiEspiral: new Image(),
+  flameBat: new Image(),
+  goblin: new Image(),
+  golem: new Image(),
+  orc: new Image(),
+  spectralKnight: new Image(),
+  viperMage: new Image(),
+  voidStalker: new Image(),
+  wraith: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -81,12 +92,23 @@ assets.card3.src = "assets/drawings/chars/MayaChibiTab.png";
 assets.card4.src = "assets/drawings/chars/ZeckChibiTab.png";
 assets.slime.src = "assets/drawings/bosses/SlimeCombat.png";
 assets.bossShadowLord.src = "assets/drawings/bosses/boss_shadow.png";
+assets.crystalSerpent.src = "assets/drawings/bosses/CrystalSerpentCombat.png";
+assets.eclipseQueen.src = "";
+assets.reiEspiral.src = "";
 assets.iconVida.src = "assets/pixel_art/ui/coração pixelart.png";
 assets.iconDefesa.src = "assets/pixel_art/ui/escudo pixelart.png";
 assets.iconDano.src = "assets/pixel_art/ui/espada pixelart.png";
 assets.cardGachaAtk.src = "assets/pixel_art/gacha/cartaataque.png";
 assets.cardGachaDef.src = "assets/pixel_art/gacha/Cartadefesa.png";
 assets.fundoGacha.src = "assets/pixel_art/gacha/fundo_do_felipe.png";
+assets.flameBat.src = "assets/drawings/bosses/FlameBatCombat.png";
+assets.goblin.src = "assets/drawings/bosses/GoblinCombat.png";
+assets.golem.src = "assets/drawings/bosses/GolemCombat.png";
+assets.orc.src = "assets/drawings/bosses/OrcCombat.png";
+assets.spectralKnight.src = "assets/drawings/bosses/SpectralKnightCombat.png";
+assets.viperMage.src = "assets/drawings/bosses/ViperMageCombat.png";
+assets.voidStalker.src = "assets/drawings/bosses/VoidStalkerCombat.png";
+assets.wraith.src = "assets/drawings/bosses/WraithCombat.png";
 
 
 

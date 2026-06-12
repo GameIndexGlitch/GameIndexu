@@ -41,6 +41,85 @@ function renderCombat(ctx, assets, state, mouseX, mouseY) {
   desenharCenarioCombate(ctx, state);
   desenharHUDCombate(ctx, state);
   desenharBotoesAcao(ctx, state); 
+  desenharInimigos(ctx, state);
+}
+
+function desenharInimigos(ctx, state) {
+  const combat = state.combat;
+  if (!combat) return;
+
+  // Posição e tamanho definidos originalmente para o Inimigo (X: 1250, Y: 80, W: 350, H: 350)
+  const enemyX = 1250;
+  const enemyY = 80;
+  const enemyW = 350;
+  const enemyH = 350;
+
+  let imgInimigo = null;
+
+  // Mapeia o nome do inimigo atual para o respectivo asset carregado no main.js
+  switch (combat.enemyName) {
+    case "Slime":
+      imgInimigo = assets.slime;
+      break;
+    case "Goblin":
+      imgInimigo = assets.goblin;
+      break;
+    case "Orc":
+      imgInimigo = assets.orc;
+      break;
+    case "Wraith":
+      imgInimigo = assets.wraith;
+      break;
+    case "Flame Bat":
+      imgInimigo = assets.flameBat;
+      break;
+    case "Spectral Knight":
+      imgInimigo = assets.spectralKnight;
+      break;
+    case "Viper Mage":
+      imgInimigo = assets.viperMage;
+      break;
+    case "Iron Golem": // Sincronizado com o turn manager (Iron Golem)
+    case "Golem":
+      imgInimigo = assets.golem;
+      break;
+    case "Crystal Serpent":
+      imgInimigo = assets.crystalSerpent;
+      break;
+    case "Void Stalker":
+      imgInimigo = assets.voidStalker;
+      break;
+    case "Shadow Lord":
+      imgInimigo = assets.bossShadowLord;
+      break;
+    case "Eclipse Queen":
+      imgInimigo = assets.eclipseQueen;
+      break;
+    case "Rei Espiral":
+      imgInimigo = assets.reiEspiral;
+      break;
+    default:
+      imgInimigo = null;
+  }
+
+  // Descreve a imagem na tela se ela estiver carregada, senão usa um fallback visual seguro
+  if (imgInimigo && imgInimigo.complete && imgInimigo.src !== window.location.href) {
+    ctx.drawImage(imgInimigo, enemyX, enemyY, enemyW, enemyH);
+  } else {
+    // Retorno visual caso a imagem falte ou a string de src esteja vazia (ex: Eclipse Queen)
+    ctx.fillStyle = "#57606f";
+    ctx.fillRect(enemyX, enemyY, enemyW, enemyH);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px Consolas, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Sem Sprite", enemyX + enemyW / 2, enemyY + enemyH / 2);
+    
+    // Restaura padrões de alinhamento
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
 }
 
 // Cria o estado inicial da batalha a partir do estado global do jogo.
@@ -55,11 +134,8 @@ function desenharCenarioCombate(ctx, state) {
   ctx.fillStyle = "#e0e6f4";
   ctx.fillRect(50, 50, 1820, 980);
 
-  ctx.fillStyle = "#1f1f2b";
-  // Quadrado do Inimigo
-  ctx.fillRect(1250, 80, 350, 350);
-  
-  // Quadrado do Jogador (Movido bem mais para a direita, seguindo a sua seta vermelha!)
+  // Quadrado de fundo para o Jogador (removido o do inimigo daqui para desenhar com a imagem)
+  ctx.fillStyle = "#c8d6e5"; // Cor de fundo opcional para a base do personagem
   ctx.fillRect(450, 400, 350, 350);
 }
 

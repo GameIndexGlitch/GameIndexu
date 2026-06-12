@@ -80,6 +80,9 @@ const assets = {
   lamina_rapida: new Image(),
   elixir_vigor: new Image(),
   aco_refinado: new Image(),
+   mayaCombat: new Image(),
+  zeckCombat: new Image(),
+  fogo_das_almas: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";

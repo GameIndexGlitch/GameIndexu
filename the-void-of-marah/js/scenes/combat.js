@@ -4,7 +4,6 @@ const BTN_H = 100;
 const BTN_SPACING = 20;
 
 // Botões na DIREITA (Embaixo da barra de vida do jogador)
-// 970 centraliza perfeitamente com a borda direita da caixa do inimigo
 const MENU_X = 970; 
 const MENU_Y = 720; 
 
@@ -18,8 +17,8 @@ const BOTAO_SOCO = {
 
 // Novo botão CONTINUAR que aparecerá no centro da tela
 const BOTAO_CONTINUAR = {
-  x: 760, // Centralizado no eixo X
-  y: 490, // Centralizado no eixo Y
+  x: 760, 
+  y: 490, 
   width: 400,
   height: 100,
 };
@@ -39,13 +38,174 @@ function renderCombat(ctx, assets, state, mouseX, mouseY) {
   }
 
   desenharCenarioCombate(ctx, state);
+  desenharJogador(ctx, assets, state); // <- Nova função chamada aqui
   desenharHUDCombate(ctx, state);
   desenharBotoesAcao(ctx, state); 
+  desenharInimigos(ctx, state);
+}
+
+function desenharInimigos(ctx, state) {
+  const combat = state.combat;
+  if (!combat) return;
+
+  const enemyX = 1250;
+  const enemyY = 80;
+  const enemyW = 350;
+  const enemyH = 350;
+
+  let imgInimigo = null;
+
+  switch (combat.enemyName) {
+    case "Slime": imgInimigo = assets.slime; break;
+    case "Goblin": imgInimigo = assets.goblin; break;
+    case "Orc": imgInimigo = assets.orc; break;
+    case "Wraith": imgInimigo = assets.wraith; break;
+    case "Flame Bat": imgInimigo = assets.flameBat; break;
+    case "Spectral Knight": imgInimigo = assets.spectralKnight; break;
+    case "Viper Mage": imgInimigo = assets.viperMage; break;
+    case "Iron Golem": 
+    case "Golem": imgInimigo = assets.golem; break;
+    case "Crystal Serpent": imgInimigo = assets.crystalSerpent; break;
+    case "Void Stalker": imgInimigo = assets.voidStalker; break;
+    case "Shadow Lord": imgInimigo = assets.bossShadowLord; break;
+    case "Eclipse Queen": imgInimigo = assets.eclipseQueen; break;
+    case "Rei Espiral": imgInimigo = assets.reiEspiral; break;
+    default: imgInimigo = null;
+  }
+
+  if (imgInimigo && imgInimigo.complete && imgInimigo.src !== window.location.href) {
+    ctx.drawImage(imgInimigo, enemyX, enemyY, enemyW, enemyH);
+  } else {
+    ctx.fillStyle = "#57606f";
+    ctx.fillRect(enemyX, enemyY, enemyW, enemyH);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px Consolas, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Sem Sprite", enemyX + enemyW / 2, enemyY + enemyH / 2);
+    
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
 }
 
 // Cria o estado inicial da batalha a partir do estado global do jogo.
+// ==========================================
+// FUNÇÕES DE INICIALIZAÇÃO E CONTROLE
+// ==========================================
+
 function iniciarCombate(state) {
+  // Inicializa o estado de combate usando o turnManager
   state.combat = turnManager.createCombatState(state);
+  
+  // GARANTIA ANTI-TRAVAMENTO: Se por algum motivo o jogador entrar no boss sem ataques 
+  // mapeados no state global, injetamos o "soco" padrão para não travar a UI.
+  if (!state.ataques || state.ataques.length === 0) {
+    state.ataques = ["soco"];
+  }
+}
+
+function desenharBotoesAcao(ctx, state) {
+  const combat = state.combat;
+  if (!combat) return;
+
+  // Garante uma lista válida de ataques
+  if (!state.ataques || state.ataques.length === 0) {
+    state.ataques = ["soco"];
+  }
+
+  const posicoesGrid = [
+    { x: MENU_X, y: MENU_Y },
+    { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y },
+    { x: MENU_X, y: MENU_Y + BTN_H + BTN_SPACING },
+    { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y + BTN_H + BTN_SPACING }
+  ];
+
+  const botoes = [];
+
+  for (let i = 0; i < 4; i++) {
+    if (i < state.ataques.length) {
+      // Proteção contra chaves inexistentes no objeto global ATAQUES_JOGO
+      const nomeChaveAtk = state.ataques[i];
+      const atk = (typeof ATAQUES_JOGO !== 'undefined' && ATAQUES_JOGO[nomeChaveAtk]) 
+                  ? ATAQUES_JOGO[nomeChaveAtk] 
+                  : { id: nomeChaveAtk, nome: nomeChaveAtk.toUpperCase(), dano: state.stats?.ataque || 10 };
+
+      botoes.push({
+        id: atk.id,
+        texto: atk.nome,
+        subtexto: `DANO: ${atk.dano}`,
+        x: posicoesGrid[i].x,
+        y: posicoesGrid[i].y,
+        ativo: !combat.finalizado
+      });
+    } else {
+      botoes.push({
+        id: `vazio${i}`,
+        texto: "---",
+        subtexto: null,
+        x: posicoesGrid[i].x,
+        y: posicoesGrid[i].y,
+        ativo: false
+      });
+    }
+  }
+
+  botoes.forEach(btn => {
+    const isHover = btn.ativo &&
+      combateMouseXGlobal >= btn.x &&
+      combateMouseXGlobal <= btn.x + BTN_W &&
+      combateMouseYGlobal >= btn.y &&
+      combateMouseYGlobal <= btn.y + BTN_H;
+
+    ctx.fillStyle = !btn.ativo ? "#999" : (isHover ? "#ffcc33" : "#ffbb00");
+    ctx.fillRect(btn.x, btn.y, BTN_W, BTN_H);
+
+    ctx.strokeStyle = "#1f1f2b";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(btn.x, btn.y, BTN_W, BTN_H);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    if (btn.subtexto) {
+      ctx.font = "bold 32px sans-serif"; 
+      ctx.fillText(btn.texto, btn.x + BTN_W / 2, btn.y + BTN_H / 2 - 12);
+      
+      ctx.font = "bold 20px sans-serif"; 
+      ctx.fillText(btn.subtexto, btn.x + BTN_W / 2, btn.y + BTN_H / 2 + 18);
+    } else {
+      ctx.font = "bold 32px sans-serif"; 
+      ctx.fillText(btn.texto, btn.x + BTN_W / 2, btn.y + BTN_H / 2);
+    }
+  });
+
+  if (combat.finalizado) {
+    const btnCont = BOTAO_CONTINUAR;
+    const hoverCont = 
+      combateMouseXGlobal >= btnCont.x &&
+      combateMouseXGlobal <= btnCont.x + btnCont.width &&
+      combateMouseYGlobal >= btnCont.y &&
+      combateMouseYGlobal <= btnCont.y + btnCont.height;
+
+    ctx.fillStyle = hoverCont ? "#ffcc33" : "#ffbb00";
+    ctx.fillRect(btnCont.x, btnCont.y, btnCont.width, btnCont.height);
+
+    ctx.strokeStyle = "#1f1f2b";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(btnCont.x, btnCont.y, btnCont.width, btnCont.height);
+
+    ctx.fillStyle = "#1f1f2b";
+    ctx.font = "bold 40px sans-serif"; 
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("CONTINUAR", btnCont.x + btnCont.width / 2, btnCont.y + btnCont.height / 2);
+  }
+
+  ctx.textAlign = "start";
+  ctx.textBaseline = "alphabetic";
 }
 
 function desenharCenarioCombate(ctx, state) {
@@ -55,12 +215,50 @@ function desenharCenarioCombate(ctx, state) {
   ctx.fillStyle = "#e0e6f4";
   ctx.fillRect(50, 50, 1820, 980);
 
-  ctx.fillStyle = "#1f1f2b";
-  // Quadrado do Inimigo
-  ctx.fillRect(1250, 80, 350, 350);
-  
-  // Quadrado do Jogador (Movido bem mais para a direita, seguindo a sua seta vermelha!)
+  // Quadrado base/chão para o Jogador ficar em cima
+  ctx.fillStyle = "#c8d6e5"; 
   ctx.fillRect(450, 400, 350, 350);
+}
+
+/**
+ * NOVA FUNÇÃO: Desenha a imagem do personagem selecionado pelo jogador
+ */
+function desenharJogador(ctx, assets, state) {
+  // Posição e tamanho sincronizados com a área designada ao jogador (X: 450, Y: 400)
+  const playerX = 450;
+  const playerY = 400;
+  const playerW = 350;
+  const playerH = 350;
+
+  let imgJogador = null;
+
+  // Verifica qual string de id foi salva no state.personagemSelecionado (ex: "maya" ou "zeck")
+  // e mapeia para os assets de Chibi carregados no main.js (card3 e card4)
+  const idPersonagem = state.personagemSelecionado?.toLowerCase();
+
+  if (idPersonagem === "maya") {
+    imgJogador = assets.card3; // MayaChibiTab.png
+  } else if (idPersonagem === "zeck") {
+    imgJogador = assets.card4; // ZeckChibiTab.png
+  }
+
+  // Desenha a imagem se estiver carregada, senão usa uma cor de placeholder
+  if (imgJogador && imgJogador.complete && imgJogador.src !== window.location.href) {
+    ctx.drawImage(imgJogador, playerX, playerY, playerW, playerH);
+  } else {
+    // Fallback visual caso o asset não esteja pronto ou não combine com as strings acima
+    ctx.fillStyle = "#341f97";
+    ctx.fillRect(playerX + 50, playerY + 50, playerW - 100, playerH - 100);
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 20px Consolas, monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Hero Sprite", playerX + playerW / 2, playerY + playerH / 2);
+    
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
 }
 
 // Desenha o HUD de combate com nome, defesa, barras de vida e mensagem.
@@ -74,7 +272,6 @@ function desenharHUDCombate(ctx, state) {
   // ---- STATUS DO INIMIGO (ESQUERDA DA CAIXA)
   // ==========================================
   const enemyBarW = 780;
-  // Agora a barra termina cravada no 1200, que é a nova posição da caixa do inimigo
   const enemyStartX = 1200 - enemyBarW; 
   const enemyTextoY = 105;
   const enemyBarY = 120; 
@@ -82,29 +279,24 @@ function desenharHUDCombate(ctx, state) {
   ctx.fillStyle = "#1f1f2b";
   ctx.font = "bold 38px Consolas, monospace";
 
-  // Nome do Inimigo (Ancorado na Esquerda)
   ctx.textAlign = "left"; 
   const textoNomeInimigo = combat.enemyName || "Inimigo";
   ctx.fillText(textoNomeInimigo, enemyStartX, enemyTextoY);
 
-  // Defesa do Inimigo (Ancorado na Direita)
   ctx.textAlign = "right";
   const textoDefesaInimigo = `DEFESA: ${combat.enemyDefense || 0}`;
   ctx.fillText(textoDefesaInimigo, enemyStartX + enemyBarW, enemyTextoY);
   
-  // Ícone Defesa Inimigo
-  const wDefEnemy = ctx.measureText(textoDefesaInimigo).width;
+  const wEnemyDef = ctx.measureText(textoDefesaInimigo).width;
   if (assets.iconDefesa && assets.iconDefesa.complete) {
-    ctx.drawImage(assets.iconDefesa, enemyStartX + enemyBarW - wDefEnemy - 45, enemyTextoY - 32, 32, 32);
+    ctx.drawImage(assets.iconDefesa, enemyStartX + enemyBarW - wEnemyDef - 45, enemyTextoY - 32, 32, 32);
   }
   
-  // Separador Central (Inimigo)
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
   ctx.fillText("|", enemyStartX + (enemyBarW / 2), enemyTextoY);
 
-  // Barra de Vida do Inimigo
-  ctx.textAlign = "left"; // Restaura o alinhamento
+  ctx.textAlign = "left"; 
   desenharBarraVida(ctx, enemyStartX, enemyBarY, enemyBarW, 40, combat.enemyHP, combat.enemyMaxHP, "#ff4c4c");
   
   if (assets.iconVida && assets.iconVida.complete) {
@@ -114,12 +306,11 @@ function desenharHUDCombate(ctx, state) {
   ctx.fillStyle = "white";
   ctx.fillText(`HP: ${combat.enemyHP}/${combat.enemyMaxHP}`, enemyStartX + 50, enemyBarY + 28);
 
-
   // ==========================================
   // ---- STATUS DO JOGADOR (DIREITA) ---------
   // ==========================================
-  const playerStartX = MENU_X; // 970 (Sincronizado com os botões)
-  const playerBarW = 780; // Largura exata de 2 botões + espaçamento
+  const playerStartX = MENU_X; 
+  const playerBarW = 780; 
   const playerTextoY = 645; 
   const playerBarY = 660; 
 
@@ -130,11 +321,9 @@ function desenharHUDCombate(ctx, state) {
   const strDefesa = `DEFESA: ${combat.playerDefense || state.stats?.defesa || 0}`;
   const strDano = `DANO: ${state.stats?.ataque || 0}`;
   
-  // 1. Nome do Jogador (Ancorado na Esquerda da Barra)
   ctx.textAlign = "left";
   ctx.fillText(nomePlayer, playerStartX, playerTextoY);
 
-  // 2. Dano do Jogador (Ancorado na Direita da Barra)
   ctx.textAlign = "right";
   ctx.fillText(strDano, playerStartX + playerBarW, playerTextoY);
   const wDano = ctx.measureText(strDano).width;
@@ -142,7 +331,6 @@ function desenharHUDCombate(ctx, state) {
     ctx.drawImage(assets.iconDano, playerStartX + playerBarW - wDano - 45, playerTextoY - 32, 32, 32);
   }
 
-  // 3. Defesa do Jogador (Ancorado no Centro da Barra)
   ctx.textAlign = "center";
   const centerPlayerX = playerStartX + (playerBarW / 2);
   ctx.fillText(strDefesa, centerPlayerX, playerTextoY);
@@ -151,13 +339,11 @@ function desenharHUDCombate(ctx, state) {
     ctx.drawImage(assets.iconDefesa, centerPlayerX - (wDefPlayer / 2) - 45, playerTextoY - 32, 32, 32);
   }
 
-  // 4. Separadores de estilo
   ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
   ctx.fillText("|", playerStartX + (playerBarW * 0.28), playerTextoY);
   ctx.fillText("|", playerStartX + (playerBarW * 0.72), playerTextoY);
 
-  // 5. Barra de Vida do Jogador
-  ctx.textAlign = "left"; // Restaura
+  ctx.textAlign = "left"; 
   desenharBarraVida(ctx, playerStartX, playerBarY, playerBarW, 40, combat.playerHP, combat.playerMaxHP, "#66b3ff");
   
   if (assets.iconVida && assets.iconVida.complete) {
@@ -167,15 +353,12 @@ function desenharHUDCombate(ctx, state) {
   ctx.fillStyle = "white";
   ctx.fillText(`HP: ${combat.playerHP}/${combat.playerMaxHP}`, playerStartX + 50, playerBarY + 28);
 
-
   // ==========================================
   // ---- LOG DE BATALHA (EMBAIXO DO JOGADOR) -
   // ==========================================
   ctx.font = "28px Consolas, monospace";
   ctx.fillStyle = "#1f1f2b";
-  // O texto fica na esquerda (150), exatamente embaixo do quadrado do personagem
   wrapText(ctx, combat.mensagem || "", 150, 800, 750, 36);
-
 
   // ---- ITEM RECEBIDO AO VENCER O COMBATE ----
   if (combat.finalizado && combat.venceu && combat.itemRecebido) {
@@ -235,15 +418,12 @@ function desenharBarraVida(ctx, x, y, width, height, current, max, color) {
   ctx.strokeRect(x, y, width, height);
 }
 
-// Desenha a malha 2x2 com os ataques (Soco no Topo-Esquerda) e o botão CONTINUAR no centro se a batalha acabar
 function desenharBotoesAcao(ctx, state) {
   const combat = state.combat;
   if (!combat) return;
 
-  // Garante que o player tenha uma lista de ataques (padrão é só o soco)
   if (!state.ataques) state.ataques = ["soco"];
 
-  // Mapeamos as posições físicas do Grid 2x2 na tela
   const posicoesGrid = [
     { x: MENU_X, y: MENU_Y },
     { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y },
@@ -253,7 +433,6 @@ function desenharBotoesAcao(ctx, state) {
 
   const botoes = [];
 
-  // Criamos os 4 botões na hora, lendo o que o jogador tem guardado no state.ataques
   for (let i = 0; i < 4; i++) {
     if (i < state.ataques.length) {
       const atk = ATAQUES_JOGO[state.ataques[i]];
@@ -333,80 +512,92 @@ function desenharBotoesAcao(ctx, state) {
   ctx.textBaseline = "alphabetic";
 }
 
-// Chama a lógica do turno do jogador para executar o ataque.
 function executarAtaque(state, ataqueEscolhido) {
   if(turnManager) turnManager.handlePlayerAction(state, ataqueEscolhido);
 }
 
-// Finaliza a batalha e atualiza o estado com vitória ou derrota.
 function finalizarCombate(state, venceu) {
   if(turnManager) turnManager.finalizeBattle(state.combat, state, venceu);
 }
 
-// Após o combate, decide o próximo passo.
 function continuarDepoisDoCombate(state) {
   const combat = state.combat;
   if (!combat || !combat.finalizado) return;
 
+  // 1. GARANTIA ABSOLUTA DO TABULEIRO: 
+  // Forçamos o estado de controle de movimento a liberar o dado antes de mudar de cena.
+  if (typeof controleMovimento !== 'undefined') {
+    controleMovimento.dadoAtivo = true;
+    controleMovimento.esperandoEscolha = false;
+    controleMovimento.animandoPulo = false;
+    controleMovimento.puloProgresso = 0;
+  }
+
   if (combat.venceu) {
-    // Se for Boss, passa de fase e zera o movimento
     if (state.bossTransition === "paraFase2") {
       state.fase = 2;
       state.casaAtual = 0;
       state.opcoesDeCaminho = [];
-      controleMovimento.passosRestantes = 0;
-      controleMovimento.esperandoEscolha = false;
-      controleMovimento.dadoAtivo = false;
-      controleMovimento.animandoPulo = false;
-      controleMovimento.puloProgresso = 0;
-      controleMovimento.casaOrigem = null;
-      controleMovimento.casaDestino = null;
+      if (typeof controleMovimento !== 'undefined') {
+        controleMovimento.passosRestantes = 0;
+        controleMovimento.casaOrigem = null;
+        controleMovimento.casaDestino = null;
+      }
       state.bossTransition = null;
     } else if (state.bossTransition === "paraFase3") {
       state.fase = 3;
       state.casaAtual = 0;
       state.opcoesDeCaminho = [];
-      controleMovimento.passosRestantes = 0;
-      controleMovimento.esperandoEscolha = false;
-      controleMovimento.dadoAtivo = false;
-      controleMovimento.animandoPulo = false;
-      controleMovimento.puloProgresso = 0;
-      controleMovimento.casaOrigem = null;
-      controleMovimento.casaDestino = null;
+      if (typeof controleMovimento !== 'undefined') {
+        controleMovimento.passosRestantes = 0;
+        controleMovimento.casaOrigem = null;
+        controleMovimento.casaDestino = null;
+      }
       state.bossTransition = null;
     } else if (state.bossTransition === "reiniciar") {
       state.casaAtual = 0;
       state.opcoesDeCaminho = [];
-      controleMovimento.passosRestantes = 0;
-      controleMovimento.esperandoEscolha = false;
-      controleMovimento.dadoAtivo = false;
-      controleMovimento.animandoPulo = false;
-      controleMovimento.puloProgresso = 0;
-      controleMovimento.casaOrigem = null;
-      controleMovimento.casaDestino = null;
+      if (typeof controleMovimento !== 'undefined') {
+        controleMovimento.passosRestantes = 0;
+        controleMovimento.casaOrigem = null;
+        controleMovimento.casaDestino = null;
+      }
       state.bossTransition = null;
-    } 
-    // Se for um Inimigo Comum, apenas reseta a flag de boss e NÃO ZERA OS PASSOS.
-    else {
+    } else {
       state.bossTransition = null;
+      
+      // SE FOR INIMIGO COMUM:
+      if (typeof controleMovimento !== 'undefined') {
+        if (controleMovimento.passosRestantes <= 0) {
+          controleMovimento.dadoAtivo = true;
+        } else {
+          // Se ainda tinha passos, o tabuleiro continua andando, o dado não deve aparecer ainda
+          controleMovimento.dadoAtivo = false; 
+          controleMovimento.esperandoEscolha = (state.opcoesDeCaminho && state.opcoesDeCaminho.length > 1);
+        }
+      }
     }
-    
-    state.proximaCena = "jogo";
   } else {
-    // Se perdeu, zera tudo e volta pro começo do tabuleiro
+    // Se perdeu, volta pro início da fase atual e libera o dado
     state.stats.vida = state.stats.vidaMax;
     state.casaAtual = 0;
     state.opcoesDeCaminho = [];
-    controleMovimento.passosRestantes = 0;
-    controleMovimento.esperandoEscolha = false;
-    controleMovimento.dadoAtivo = false;
-    controleMovimento.animandoPulo = false;
-    controleMovimento.puloProgresso = 0;
-    controleMovimento.casaOrigem = null;
-    controleMovimento.casaDestino = null;
+    if (typeof controleMovimento !== 'undefined') {
+      controleMovimento.passosRestantes = 0;
+      controleMovimento.casaOrigem = null;
+      controleMovimento.casaDestino = null;
+    }
     state.bossTransition = null;
-    state.proximaCena = "jogo";
   }
+
+  // 2. ADICIONA UMA COLA DE SEGURANÇA NO STATE GLOBAL
+  // Se o seu main.js ler o state para renderizar o dado, essa flag vai impedir que ele suma.
+  state.forçarExibicaoDado = true; 
+  state.dadoAtivo = true; 
+
+  // Limpa o estado de combate para o tabuleiro não achar que ainda estamos lutando
+  state.combat = null; 
+  state.proximaCena = "jogo";
   state.emTransicao = true;
 }
 
@@ -431,6 +622,10 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   ctx.fillText(line, x, y);
 }
 
+
+// ==========================================
+// EVENTO CLICK ATUALIZADO (BLINDADO)
+// ==========================================
 window.addEventListener("mousedown", (event) => {
   if (!combateStateGlobal || combateStateGlobal.cena !== "combat" || event.button !== 0) return;
 
@@ -444,7 +639,6 @@ window.addEventListener("mousedown", (event) => {
   const combat = combateStateGlobal.combat;
   if (!combat) return;
 
-  // Se o combate acabou, verifica o clique NO BOTÃO DO CENTRO (CONTINUAR)
   if (combat.finalizado) {
     if (
       clickX >= BOTAO_CONTINUAR.x &&
@@ -454,12 +648,11 @@ window.addEventListener("mousedown", (event) => {
     ) {
       continuarDepoisDoCombate(combateStateGlobal);
     }
-  } 
-  // Se o combate ainda está acontecendo, verifica o clique NO BOTÃO DE SOCO
-  else {
-    if (!combateStateGlobal.ataques) combateStateGlobal.ataques = ["soco"];
+  } else {
+    if (!combateStateGlobal.ataques || combateStateGlobal.ataques.length === 0) {
+      combateStateGlobal.ataques = ["soco"];
+    }
     
-    // Mesmas posições do grid
     const posicoesGrid = [
       { x: MENU_X, y: MENU_Y },
       { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y },
@@ -467,7 +660,7 @@ window.addEventListener("mousedown", (event) => {
       { x: MENU_X + BTN_W + BTN_SPACING, y: MENU_Y + BTN_H + BTN_SPACING }
     ];
 
-    // Checa a colisão apenas nos blocos que contêm ataques
+    // Varre apenas os ataques que o jogador de fato tem disponíveis
     for (let i = 0; i < combateStateGlobal.ataques.length; i++) {
       let pos = posicoesGrid[i];
       if (
@@ -476,8 +669,16 @@ window.addEventListener("mousedown", (event) => {
         clickY >= pos.y &&
         clickY <= pos.y + BTN_H
       ) {
-        // Encontrou! Puxa o ataque do dicionário e manda executar
-        const ataqueEscolhido = ATAQUES_JOGO[combateStateGlobal.ataques[i]];
+        const nomeChave = combateStateGlobal.ataques[i];
+        
+        // Verificação defensiva antes de chamar executarAtaque
+        let ataqueEscolhido;
+        if (typeof ATAQUES_JOGO !== 'undefined' && ATAQUES_JOGO[nomeChave]) {
+          ataqueEscolhido = ATAQUES_JOGO[nomeChave];
+        } else {
+          ataqueEscolhido = { id: nomeChave, nome: nomeChave.toUpperCase(), dano: combateStateGlobal.stats?.ataque || 10 };
+        }
+
         executarAtaque(combateStateGlobal, ataqueEscolhido);
         break;
       }

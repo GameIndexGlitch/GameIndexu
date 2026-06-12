@@ -102,7 +102,7 @@ assets.slime.src = "assets/drawings/bosses/SlimeCombat.png";
 assets.bossShadowLord.src = "assets/drawings/bosses/ShadowLordCombat.png";
 assets.crystalSerpent.src = "assets/drawings/bosses/CrystalSerpentCombat.png";
 assets.eclipseQueen.src = "assets/drawings/bosses/EclipseQueenCombat.png";
-assets.reiEspiral.src = "";
+assets.reiEspiral.src = "assets/drawings/bosses/AvoMarahCombat.png";
 assets.iconVida.src = "assets/pixel_art/ui/coração pixelart.png";
 assets.iconDefesa.src = "assets/pixel_art/ui/escudo pixelart.png";
 assets.iconDano.src = "assets/pixel_art/ui/espada pixelart.png";
@@ -111,7 +111,7 @@ assets.cardGachaDef.src = "assets/pixel_art/gacha/Cartadefesa.png";
 assets.fundoGacha.src = "assets/pixel_art/gacha/fundo_do_felipe.png";
 assets.flameBat.src = "assets/drawings/bosses/FlameBatCombat.png";
 assets.goblin.src = "assets/drawings/bosses/GoblinCombat.png";
-assets.golem.src = "assets/drawings/bosses/GolemCombat.png";
+assets.golem.src = "assets/drawings/bosses/IronGolemCombat.png";
 assets.orc.src = "assets/drawings/bosses/OrcCombat.png";
 assets.spectralKnight.src = "assets/drawings/bosses/SpectralKnightCombat.png";
 assets.viperMage.src = "assets/drawings/bosses/ViperMageCombat.png";
@@ -122,7 +122,9 @@ assets.escudo.src = "assets/pixel_art/gacha/escudo.png";
 assets.lamina_rapida.src = "assets/pixel_art/gacha/lâmina_rápida.png";
 assets.elixir_vigor.src = "assets/pixel_art/gacha/Elixir_de_Vigor.png";
 assets.aco_refinado.src = "assets/pixel_art/gacha/aço_refinado.png";
-
+assets.fogo_das_almas.src = "assets/pixel_art/gacha/fogo_das_almas.png";
+assets.mayaCombat.src = "assets/drawings/chars/Combat/MayaCombat.png";
+assets.zeckCombat.src = "assets/drawings/chars/Combat/ZeckCombat.png";
 
 
 // Inicializa o módulo de cutscenes

@@ -55,13 +55,12 @@ function desenharInimigos(ctx, assets, state) { // <--- CORRIGIDO: Recebendo ass
     case "Flame Bat": imgInimigo = assets.flameBat; break;
     case "Spectral Knight": imgInimigo = assets.spectralKnight; break;
     case "Viper Mage": imgInimigo = assets.viperMage; break;
-    case "Iron Golem": 
     case "Golem": imgInimigo = assets.golem; break;
     case "Crystal Serpent": imgInimigo = assets.crystalSerpent; break;
     case "Void Stalker": imgInimigo = assets.voidStalker; break;
     case "Shadow Lord": imgInimigo = assets.bossShadowLord; break;
     case "Eclipse Queen": imgInimigo = assets.eclipseQueen; break;
-    case "Rei Espiral": imgInimigo = assets.reiEspiral; break;
+    case "Marah": imgInimigo = assets.reiEspiral; break;
     default: imgInimigo = null;
   }
 

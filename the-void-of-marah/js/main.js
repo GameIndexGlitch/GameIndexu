@@ -80,6 +80,8 @@ const assets = {
   lamina_rapida: new Image(),
   elixir_vigor: new Image(),
   aco_refinado: new Image(),
+  mayaCombat: new Image(),
+  zeckCombat: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -119,6 +121,8 @@ assets.escudo.src = "assets/pixel_art/gacha/escudo.png";
 assets.lamina_rapida.src = "assets/pixel_art/gacha/lâmina_rápida.png";
 assets.elixir_vigor.src = "assets/pixel_art/gacha/Elixir_de_Vigor.png";
 assets.aco_refinado.src = "assets/pixel_art/gacha/aço_refinado.png";
+assets.mayaCombat.src = "assets/drawings/chars/Combat/MayaCombat.png";
+assets.zeckCombat.src = "assets/drawings/chars/Combat/ZeckCombat.png";
 
 
 
@@ -223,6 +227,10 @@ canvas.addEventListener("mousedown", (e) => {
       state.proximaCena = "jogo";
       state.emTransicao = true;
     }
+  } 
+  // --- INJEÇÃO DA CENA DE COMBATE: Envia o clique direto para o combat.js ---
+  else if (state.cena === "combat") {
+    processarCliqueCombate(state, mousePos.x, mousePos.y);
   }
 });
 

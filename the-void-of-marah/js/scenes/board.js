@@ -614,7 +614,13 @@ function renderColecionaveis(ctx, assets, state) {
 
   ctx.fillStyle = "white";
   ctx.font = "bold 20px Arial";
-  ctx.fillText("Colecionáveis", xPainel + 10, yPainel + 25);
+  ctx.textAlign = "center";
+  ctx.fillText(
+    "Colecionáveis",
+    xPainel + largura / 2,
+    yPainel + 25
+  );
+  ctx.textAlign = "left";
 
   state.colecionaveis.forEach((item, index) => {
 

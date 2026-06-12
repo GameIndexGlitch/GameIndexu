@@ -24,6 +24,8 @@ const configCutscene = {
     "assets/drawings/cutscenes/DecimaSextaCutscene.png",
     "assets/drawings/cutscenes/DecimaSetimaCutscene.png",
     "assets/drawings/cutscenes/DecimaOitavaCutscene.png",
+    "assets/drawings/cutscenes/DecimaNonaCutscene.png",
+    "assets/drawings/cutscenes/VigesimaCutscene.png",
   ],
   cenaDestinoFinal: "selecao",
 };

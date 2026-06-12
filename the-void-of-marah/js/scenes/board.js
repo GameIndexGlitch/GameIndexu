@@ -278,7 +278,7 @@ function renderBoard(ctx, assets, state, mouseX, mouseY) {
 
   processarMovimentoBoard(state, mapa);
   renderPersonagem(ctx, assets, state, mapa);
-  renderHUD(ctx, state);
+  renderHUD(ctx, assets, state);
   renderColecionaveis(ctx, assets, state);
   if (state.cena === "jogo" && !state.emTransicao) {
     if (controleMovimento.passosRestantes <= 0 && !controleMovimento.animandoPulo) {
@@ -568,7 +568,7 @@ function renderPersonagem(ctx, assets, state, mapa) {
   ctx.restore();
 }
 
-function renderHUD(ctx, state) {
+function renderHUD(ctx, asseits, state) {
   ctx.save();
   ctx.textAlign = "left";
   ctx.textBaseline = "top";

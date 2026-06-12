@@ -420,7 +420,7 @@ function aplicarEfeitoDaCasa(casa) {
   } else if (casa.tipo === CASAS.COMBAT) {
     if (stateGlobal) {
       stateGlobal.combatHouseType = "combat";
-      
+      stateGlobal.bossTransition = null;
       // --- CÓDIGO NOVO: Sorteando um colecionável aleatório para a recompensa ---
       let itemSorteado = null;
       if (typeof GACHA_ITENS !== 'undefined') {
@@ -596,42 +596,46 @@ function renderHUD(ctx, asseits, state) {
   ctx.restore();
 }
 function renderColecionaveis(ctx, assets, state) {
-
   if (!state.colecionaveis || state.colecionaveis.length === 0) {
     return;
   }
 
-  const largura = 350;
-  const altura = 90;
-
-  const xPainel = 1920 - largura - 20;
+  const larguraPainel = 450; 
+  const itemSize = 40;
+  const espacamento = 10;
+  const padding = 15;
+  
+  const xPainel = 1920 - larguraPainel - 20;
   const yPainel = 20;
+
+  const itensPorLinha = Math.floor((larguraPainel - padding * 2) / (itemSize + espacamento));
+  const linhas = Math.ceil(state.colecionaveis.length / itensPorLinha);
+  const alturaPainel = 50 + (linhas * (itemSize + espacamento));
 
   ctx.save();
 
   ctx.fillStyle = "rgba(0,0,0,0.8)";
-  ctx.fillRect(xPainel, yPainel, largura, altura);
+  ctx.fillRect(xPainel, yPainel, larguraPainel, alturaPainel);
 
+  // --- ALTERAÇÃO AQUI ---
   ctx.fillStyle = "white";
   ctx.font = "bold 20px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(
-    "Colecionáveis",
-    xPainel + largura / 2,
-    yPainel + 25
-  );
-  ctx.textAlign = "left";
+  ctx.textAlign = "center"; // Define o alinhamento como centro
+  // Posiciona no X do painel + metade da largura total
+  ctx.fillText("Colecionáveis", xPainel + (larguraPainel / 2), yPainel + 25);
+  // ----------------------
 
   state.colecionaveis.forEach((item, index) => {
-
     const img = assets[item.imgId];
-
     if (!img || !img.complete) return;
 
-    const x = xPainel + 10 + (index * 50);
-    const y = yPainel + 35;
+    const linha = Math.floor(index / itensPorLinha);
+    const col = index % itensPorLinha;
 
-    ctx.drawImage(img, x, y, 40, 40);
+    const x = xPainel + padding + (col * (itemSize + espacamento));
+    const y = yPainel + 45 + (linha * (itemSize + espacamento));
+
+    ctx.drawImage(img, x, y, itemSize, itemSize);
   });
 
   ctx.restore();

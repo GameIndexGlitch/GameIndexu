@@ -64,13 +64,15 @@ function desenharInimigos(ctx, state) {
     case "Flame Bat": imgInimigo = assets.flameBat; break;
     case "Spectral Knight": imgInimigo = assets.spectralKnight; break;
     case "Viper Mage": imgInimigo = assets.viperMage; break;
-    case "Iron Golem": 
+    case "Iron Golem":  imgInimigo = assets.ironGolem; break;
     case "Golem": imgInimigo = assets.golem; break;
     case "Crystal Serpent": imgInimigo = assets.crystalSerpent; break;
     case "Void Stalker": imgInimigo = assets.voidStalker; break;
     case "Shadow Lord": imgInimigo = assets.bossShadowLord; break;
     case "Eclipse Queen": imgInimigo = assets.eclipseQueen; break;
-    case "Rei Espiral": imgInimigo = assets.reiEspiral; break;
+    case "Marah": imgInimigo = assets.marah; break;
+    case "Chaos Wisp": imgInimigo = assets.chaosWisp; break;
+    case "Abyssal Archer": imgInimigo = assets.abyssalArcher; break;
     default: imgInimigo = null;
   }
 
@@ -559,6 +561,13 @@ function continuarDepoisDoCombate(state) {
   const combat = state.combat;
   if (!combat || !combat.finalizado) return;
 
+  if (combat.venceu && combat.enemyName === "Marah") {
+      state.cena = "cutscene_final"; 
+      state.emTransicao = true;
+      state.proximaCena = "cutscene_final";
+      return; // Para a execução aqui, não deixa continuar o resto da função
+  }
+
   // 1. Configura as flags padrão para o próximo frame
   if (typeof controleMovimento !== 'undefined') {
     controleMovimento.dadoAtivo = true;
@@ -568,53 +577,42 @@ function continuarDepoisDoCombate(state) {
   }
 
   if (combat.venceu) {
+    // 1. Lógica de Colecionáveis (mantida)
     if (combat.itemRecebido) {
-
-    if (!state.colecionaveis) {
-      state.colecionaveis = [];
+      if (!state.colecionaveis) state.colecionaveis = [];
+      const jaTem = state.colecionaveis.some(item => item.nome === combat.itemRecebido.nome);
+      if (!jaTem) state.colecionaveis.push(combat.itemRecebido);
     }
 
-    const jaTem = state.colecionaveis.some(
-      item => item.nome === combat.itemRecebido.nome
-    );
+    // 2. CORREÇÃO: Verifique se estamos mudando de fase
+    const mudandoFase = ["paraFase2", "paraFase3"].includes(state.bossTransition);
 
-    if (!jaTem) {
-      state.colecionaveis.push(combat.itemRecebido);
-    }
-  }
-    if (state.bossTransition === "paraFase2") {
-      state.fase = 2;
-      state.casaAtual = 0;
-      state.opcoesDeCaminho = [];
-      if (typeof controleMovimento !== 'undefined') controleMovimento.passosRestantes = 0;
-      state.bossTransition = null;
-    } else if (state.bossTransition === "paraFase3") {
-      state.fase = 3;
-      state.casaAtual = 0;
-      state.opcoesDeCaminho = [];
-      if (typeof controleMovimento !== 'undefined') controleMovimento.passosRestantes = 0;
-      state.bossTransition = null;
-    } else if (state.bossTransition === "reiniciar") {
-      state.casaAtual = 0;
+    if (mudandoFase) {
+      state.fase = state.bossTransition === "paraFase2" ? 2 : 3;
+      state.casaAtual = 0; // Só reseta se for mudar de fase
       state.opcoesDeCaminho = [];
       if (typeof controleMovimento !== 'undefined') controleMovimento.passosRestantes = 0;
       state.bossTransition = null;
     } else {
+      // SE NÃO ESTÁ MUDANDO DE FASE, NÃO RESETE A CASA
+      // O jogador deve continuar na casa do monstro ou onde parou
       state.bossTransition = null;
-      if (typeof controleMovimento !== 'undefined') {
-        if (controleMovimento.passosRestantes <= 0) {
-          controleMovimento.dadoAtivo = true;
-        } else {
-          controleMovimento.dadoAtivo = false; 
-          controleMovimento.esperandoEscolha = (state.opcoesDeCaminho && state.opcoesDeCaminho.length > 1);
-        }
+      
+      // --- CÓDIGO NOVO AQUI ---
+      // Se ele venceu um monstro no meio do caminho e ainda tem passos no dado, desconta 1 passo para ele continuar andando
+      if (typeof controleMovimento !== 'undefined' && controleMovimento.passosRestantes > 0) {
+          controleMovimento.passosRestantes--; 
       }
     }
   } else {
+    // Se perdeu a luta, aí sim volta para o início
     state.stats.vida = state.stats.vidaMax;
     state.casaAtual = 0;
     state.opcoesDeCaminho = [];
     if (typeof controleMovimento !== 'undefined') controleMovimento.passosRestantes = 0;
+    
+    // --- CORREÇÃO DO BUG AQUI ---
+    // Limpa a transição de boss caso você tenha morrido na casa roxa
     state.bossTransition = null;
   }
 

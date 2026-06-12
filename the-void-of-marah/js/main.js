@@ -102,6 +102,10 @@ const assets = {
   chute: new Image(),
   dar_choque: new Image(),
   flash_celular: new Image(),
+  chaosWisp: new Image(),
+  ironGolem: new Image(),
+  marah: new Image(),
+  abyssalArcher: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -162,9 +166,16 @@ assets.omnitrix.src = "assets/pixel_art/gacha/omnitrix.png";
 assets.chute.src = "assets/pixel_art/gacha/chute.png";
 assets.dar_choque.src = "assets/pixel_art/gacha/dar_choque.png";
 assets.flash_celular.src = "assets/pixel_art/gacha/flash_celular.png";
+assets.chaosWisp.src = "assets/drawings/bosses/ChaosWispCombat.png";
+assets.ironGolem.src = "assets/drawings/bosses/ironGolemCombat.png"
+assets.marah.src = "assets/drawings/bosses/AvoMarahCombat.png"
+assets.abyssalArcher.src = "assets/drawings/bosses/AbyssalArcher.png"
+
 
 // Inicializa o módulo de cutscenes
 inicializarCutscenes();
+inicializarCutsceneFinal();
+
 
 /**
  * Loop Principal do Jogo
@@ -173,28 +184,26 @@ function loop() {
   ctx.clearRect(0, 0, 1920, 1080);
   ctx.imageSmoothingEnabled = false;
 
-  // Renderização por Cena
   if (state.cena === "menu") {
     renderMenu(ctx, assets, state, mousePos.x, mousePos.y);
-    assets.musica_de_inicial.loop = true;
-    assets.musica_de_inicial.play();
-    assets.musica_de_inicial.volume = state.mutado ? 0 : state.volume / 10;
+    // ...
   } else if (state.cena === "cutscene") {
     renderCutscene(ctx);
+  } else if (state.cena === "cutscene_final") {
+    renderCutsceneFinal(ctx);
   } else if (state.cena === "selecao") {
     renderSelecao(ctx, assets, mousePos.x, mousePos.y);
   } else if (state.cena === "creditos") {
     renderCreditos(ctx);
   } else if (state.cena === "jogo") {
     renderBoard(ctx, assets, state, mousePos.x, mousePos.y);
-    assets.musica_de_fundo.loop = true;
-    assets.musica_de_fundo.play();
-    assets.musica_de_fundo.volume = state.mutado ? 0 : state.volume / 10;
+    // ...
   } else if (state.cena === "combat") {
     renderCombat(ctx, assets, state, mousePos.x, mousePos.y);
   } else if (state.cena === "gacha") {
     renderGacha(ctx, state, mousePos.x, mousePos.y);
   }
+  // Remova qualquer outro else if repetido daqui!
 
   gerenciarTransicao();
   requestAnimationFrame(loop);
@@ -264,8 +273,50 @@ canvas.addEventListener("mousedown", (e) => {
       state.proximaCena = "jogo";
       state.emTransicao = true;
     }
+  } else if (state.cena === "cutscene_final") { // ADICIONE ISSO
+    const acao = checkCutsceneFinalClick();
+    if (acao === "fim_jogo") {
+      resetarJogo(); // Função que veremos abaixo
+    }
   }
 });
+
+function resetarJogo() {
+  state.cena = "menu";
+  state.emTransicao = false;
+  state.transicao = 0;
+  state.proximaCena = "";
+  
+  // Reset dos stats
+  state.personagemSelecionado = null;
+  state.casaAtual = 0;
+  state.fase = 1;
+  state.itensRecebidos = [];
+  state.colecionaveis = [];
+  state.stats = { vida: 10, vidaMax: 10, defesa: 5, ataque: 3 };
+  state.gacha = null;
+  
+  // --- ADICIONE ESTA PARTE PARA CORRIGIR O MOVIMENTO ---
+  if (typeof controleMovimento !== 'undefined') {
+    controleMovimento.passosRestantes = 0;      // Zera qualquer movimento pendente
+    controleMovimento.timerAndar = 0;           // Reseta o timer de passo
+    controleMovimento.esperandoEscolha = false; // Cancela seleções
+    controleMovimento.dadoAtivo = false;        // Força a desativação do dado
+    controleMovimento.animandoPulo = false;     // Para qualquer animação de pulo
+    controleMovimento.puloProgresso = 0;
+  }
+  // -----------------------------------------------------
+  
+  // Resetar a cutscene final para o início
+  estadoCutsceneFinal.indiceAtual = 0;
+  estadoCutsceneFinal.opacidade = 0;
+
+  // Para a música e reseta o tempo
+  if (assets.musica_de_fundo) {
+    assets.musica_de_fundo.pause();
+    assets.musica_de_fundo.currentTime = 0;
+  }
+}
 
 function alternarMute() {
   if (!state.mutado) {

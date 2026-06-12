@@ -37,7 +37,7 @@ function renderCombat(ctx, assets, state, mouseX, mouseY) {
     iniciarCombate(state);
   }
 
-  desenharCenarioCombate(ctx, state);
+  desenharCenarioCombate(ctx, assets, state);
   desenharJogador(ctx, assets, state); // <- Nova função chamada aqui
   desenharHUDCombate(ctx, state);
   desenharBotoesAcao(ctx, state); 
@@ -48,8 +48,9 @@ function desenharInimigos(ctx, state) {
   const combat = state.combat;
   if (!combat) return;
 
-  const enemyX = 1250;
-  const enemyY = 80;
+  // Diminuímos o X para 1350 para puxar ele mais para a esquerda
+  const enemyX = 1350; 
+  const enemyY = 20;   
   const enemyW = 350;
   const enemyH = 350;
 
@@ -208,45 +209,64 @@ function desenharBotoesAcao(ctx, state) {
   ctx.textBaseline = "alphabetic";
 }
 
-function desenharCenarioCombate(ctx, state) {
-  ctx.fillStyle = "#a4c3f2";
-  ctx.fillRect(0, 0, 1920, 1080);
-
-  ctx.fillStyle = "#e0e6f4";
-  ctx.fillRect(50, 50, 1820, 980);
-
-  // Quadrado base/chão para o Jogador ficar em cima
-  ctx.fillStyle = "#c8d6e5"; 
-  ctx.fillRect(450, 400, 350, 350);
+function desenharCenarioCombate(ctx, assets, state) {
+  // Verifica se a imagem do fundo carregou corretamente
+  if (assets.fundoCombat && assets.fundoCombat.complete && assets.fundoCombat.src !== window.location.href) {
+    // Desenha a imagem preenchendo a tela toda (1920x1080)
+    ctx.drawImage(assets.fundoCombat, 0, 0, 1920, 1080);
+  } else {
+    // Fallback de segurança: se a imagem der erro, carrega o fundo antigo
+    ctx.fillStyle = "#a4c3f2";
+    ctx.fillRect(0, 0, 1920, 1080);
+    ctx.fillStyle = "#e0e6f4";
+    ctx.fillRect(50, 50, 1820, 980);
+  }
 }
 
 /**
  * NOVA FUNÇÃO: Desenha a imagem do personagem selecionado pelo jogador
  */
 function desenharJogador(ctx, assets, state) {
-  // Posição e tamanho sincronizados com a área designada ao jogador (X: 450, Y: 400)
-  const playerX = 450;
-  const playerY = 400;
-  const playerW = 350;
-  const playerH = 350;
+  // Aumentamos a altura de 350 para 520 (mais perto da câmera = maior)
+  let playerH = 520; 
+  
+  // Descemos o eixo Y de 400 para 280. 
+  // (280 + 520 de altura = 800. Os pés vão bater na linha 800 da tela, bem no primeiro plano da grama)
+  let playerY = 280; 
+  
+  let playerW = 350; // Fallback
+  let playerX = 450; 
 
   let imgJogador = null;
 
-  // Verifica qual string de id foi salva no state.personagemSelecionado (ex: "maya" ou "zeck")
-  // e mapeia para os assets de Chibi carregados no main.js (card3 e card4)
   const idPersonagem = state.personagemSelecionado?.toLowerCase();
 
   if (idPersonagem === "maya") {
-    imgJogador = assets.card3; // MayaChibiTab.png
+    imgJogador = assets.mayaCombat; 
   } else if (idPersonagem === "zeck") {
-    imgJogador = assets.card4; // ZeckChibiTab.png
+    imgJogador = assets.zeckCombat; 
   }
 
   // Desenha a imagem se estiver carregada, senão usa uma cor de placeholder
   if (imgJogador && imgJogador.complete && imgJogador.src !== window.location.href) {
+    
+    // Mantém a proporção matemática com a nova altura gigante
+    playerW = imgJogador.width * (playerH / imgJogador.height);
+    
+    // Trava o centro do personagem no mesmo eixo X de antes (pixel 625)
+    playerX = 625 - (playerW / 2);
+
+    // Liga a suavização de alta qualidade
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    
     ctx.drawImage(imgJogador, playerX, playerY, playerW, playerH);
+    
+    ctx.restore();
+
   } else {
-    // Fallback visual caso o asset não esteja pronto ou não combine com as strings acima
+    // Fallback visual
     ctx.fillStyle = "#341f97";
     ctx.fillRect(playerX + 50, playerY + 50, playerW - 100, playerH - 100);
     
@@ -385,18 +405,32 @@ function desenharHUDCombate(ctx, state) {
     ctx.fillText(item.nome || "Item exemplo", itemCardX + 30, itemCardY + 82);
 
     ctx.font = "18px Consolas, monospace";
-    ctx.fillText(item.descricao || "Espaço para trocar depois.", itemCardX + 30, itemCardY + 118, itemCardW - 70);
+    // Usando o wrapText e limitando a largura (maxWidth) para 280 pixels,
+    // assim o texto quebra de linha antes de encostar na caixa da imagem (X + 330)
+    wrapText(ctx, item.descricao || "Espaço para trocar depois.", itemCardX + 30, itemCardY + 118, 280, 22);
 
     ctx.fillStyle = "#f4f4f7";
     ctx.fillRect(itemCardX + 330, itemCardY + 30, 130, 100);
     ctx.strokeStyle = "#1f1f2b";
     ctx.strokeRect(itemCardX + 330, itemCardY + 30, 130, 100);
 
-    ctx.fillStyle = "#1f1f2b";
-    ctx.font = "bold 20px Consolas, monospace";
-    ctx.textAlign = "center";
-    ctx.fillText("PNG", itemCardX + 395, itemCardY + 72);
-    ctx.fillText("aqui", itemCardX + 395, itemCardY + 102);
+    // Tenta buscar a imagem do item usando a propriedade imgId definida no array GACHA_ITENS
+    const imgItem = assets[item.imgId];
+    
+    // Se a imagem existir e já estiver carregada, desenha na tela
+    if (imgItem && imgItem.complete && imgItem.src !== window.location.href) {
+        // Desenha a imagem ocupando o espaço da caixa cinza (130x100)
+        // Se a pixel art ficar esticada, você pode ajustar as dimensões aqui.
+        ctx.drawImage(imgItem, itemCardX + 330, itemCardY + 30, 130, 100);
+    } else {
+        // Fallback caso a imagem não carregue
+        ctx.fillStyle = "#1f1f2b";
+        ctx.font = "bold 20px Consolas, monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("Sem", itemCardX + 395, itemCardY + 72);
+        ctx.fillText("Img", itemCardX + 395, itemCardY + 102);
+    }
+    
     ctx.restore();
 
     ctx.textAlign = "left";

@@ -24,7 +24,7 @@ const ENEMIES_COMBAT_FASE2 = [
   { name: "Flame Bat", hp: 14, attack: 6, defense: 2 },
   { name: "Spectral Knight", hp: 18, attack: 6, defense: 3 },
   { name: "Viper Mage", hp: 16, attack: 7, defense: 2 },
-  { name: "Iron Golem", hp: 20, attack: 7, defense: 4 },
+  { name: "Golem", hp: 20, attack: 7, defense: 4 },
 ];
 
 // Inimigos comuns da fase 3.
@@ -72,11 +72,25 @@ function createCombatState(state) {
     throw new Error("turnManager.createCombatState requer um estado global válido.");
   }
 
-  const player = new Player("Jogador", state.stats.vidaMax, state.stats.ataque, state.stats.defesa);
-  player.hp = Math.max(1, Math.min(state.stats.vidaMax, state.stats.vida));
+  // --- CORRIGIDO: Removido 'new Player' para evitar crashes ---
+  const player = {
+    name: "Jogador",
+    maxHp: state.stats.vidaMax,
+    hp: Math.max(1, Math.min(state.stats.vidaMax, state.stats.vida)),
+    attack: state.stats.ataque,
+    defense: state.stats.defesa
+  };
 
   const enemyData = getEnemyTemplate(state);
-  const enemy = new Enemy(enemyData.name, enemyData.hp, enemyData.attack, enemyData.defense);
+  
+  // --- CORRIGIDO: Removido 'new Enemy' para evitar crashes ---
+  const enemy = {
+    name: enemyData.name,
+    maxHp: enemyData.hp,
+    hp: enemyData.hp,
+    attack: enemyData.attack,
+    defense: enemyData.defense
+  };
 
   const battle = {
     player,
@@ -155,38 +169,45 @@ function finalizeBattle(battle, state, venceu) {
 }
 
 // Executa a ação do jogador e trata o contra-ataque do inimigo.
-function handlePlayerAction(state, ataqueEscolhido) { // <--- Adicione aqui!
+function handlePlayerAction(state, ataqueEscolhido) {
   const battle = state?.combat;
   if (!battle || battle.finalizado) return false;
 
   // --- JOGADOR ATACA ---
-  // Pega o dano puro direto do ataque selecionado
-  const damageDealt = battle.enemy.receiveAttack(battle.player.attackValue(ataqueEscolhido.dano));
+  // Cálculo manual usando o valor do ataque escolhido menos a defesa do oponente
+  const randomBonusPlayer = Math.floor(Math.random() * (TURN_ATTACK_BONUSES.player.max - TURN_ATTACK_BONUSES.player.min + 1)) + TURN_ATTACK_BONUSES.player.min;
+  const totalPlayerAttack = ataqueEscolhido.dano + randomBonusPlayer;
+  const damageDealt = Math.max(1, totalPlayerAttack - battle.enemy.defense);
   
-  // Agora a mensagem fala o nome do golpe correto
+  battle.enemy.hp = Math.max(0, battle.enemy.hp - damageDealt);
   battle.mensagem = `Você usou ${ataqueEscolhido.nome} em ${battle.enemy.name} e causou ${damageDealt} de dano.`;
   syncBattleSnapshot(battle, state);
 
-  if (!battle.enemy.isAlive) {
+  // Verifica se o inimigo morreu
+  if (battle.enemy.hp <= 0) {
     finalizeBattle(battle, state, true);
     return true;
   }
 
   // --- INIMIGO CONTRA-ATACA ---
-  // Inimigo ataca usando apenas a força base dele (+0 de bônus)
-  const poderInimigo = 0;
-  const enemyDamage = battle.player.receiveAttack(battle.enemy.attackValue(poderInimigo));
+  const randomBonusEnemy = Math.floor(Math.random() * (TURN_ATTACK_BONUSES.enemy.max - TURN_ATTACK_BONUSES.enemy.min + 1)) + TURN_ATTACK_BONUSES.enemy.min;
+  const totalEnemyAttack = battle.enemy.attack + randomBonusEnemy;
+  const enemyDamage = Math.max(1, totalEnemyAttack - battle.player.defense);
   
   battle.turn = TURN_STATES.ENEMY;
   battle.estado = battle.turn;
+  
+  battle.player.hp = Math.max(0, battle.player.hp - enemyDamage);
   battle.mensagem += `\n${battle.enemy.name} contra-atacou e causou ${enemyDamage} de dano.`;
   syncBattleSnapshot(battle, state);
 
-  if (!battle.player.isAlive) {
+  // Verifica se o jogador morreu
+  if (battle.player.hp <= 0) {
     finalizeBattle(battle, state, false);
     return true;
   }
 
+  // Devolve o turno para o jogador
   battle.turn = TURN_STATES.PLAYER;
   battle.estado = battle.turn;
   syncBattleSnapshot(battle, state);

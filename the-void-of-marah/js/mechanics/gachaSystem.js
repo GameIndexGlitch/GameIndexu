@@ -12,7 +12,7 @@ const GACHA_ITENS = [
     valor: 3,
     descricao: "Recupera 3 pontos de vida máxima e cura imediatamente o mesmo valor.",
     cor: "#8cffb6",
-    imgId: "pocao_cura" // Insira aqui o ID correto caso tenha o asset, ex: "pocao"
+    imgId: "pocao_cura" 
   },
   {
     nome: "Escudo do Guardião",
@@ -20,15 +20,15 @@ const GACHA_ITENS = [
     valor: 2,
     descricao: "Aumenta a defesa em 2 pontos, reduzindo o dano recebido.",
     cor: "#8cc8ff",
-    imgId: "escudo" // Mapeado para o arquivo escudo.png
+    imgId: "escudo" 
   },
   {
     nome: "Lâmina Rápida",
     tipo: "ataque",
-    valor: 1,
+    valor: 2,
     descricao: "Aumenta o dano em 1 ponto para o próximo combate.",
     cor: "#ffd56b",
-    imgId: "lamina_rapida" // Mapeado para o arquivo lâmina_rápida.png
+    imgId: "lamina_rapida" 
   },
   {
     nome: "Elixir de Vigor",
@@ -36,7 +36,7 @@ const GACHA_ITENS = [
     valor: 5,
     descricao: "Aumenta a vida máxima em 5 pontos e restaura a vida atual.",
     cor: "#7dffb8",
-    imgId: "elixir_vigor" // Mapeado para o arquivo Elixir_de_Vigor.png
+    imgId: "elixir_vigor" 
   },
   {
     nome: "Aço Refinado",
@@ -44,15 +44,15 @@ const GACHA_ITENS = [
     valor: 3,
     descricao: "Fortifica o personagem com +3 de defesa permanente.",
     cor: "#9ed4ff",
-    imgId: "aco_refinado" // Mapeado para o arquivo aço_refinado.png
+    imgId: "aco_refinado" 
   },
   {
-    nome: "Foco de Cerimônia", // Corrigido erro de digitação original "Cerimânia"
+    nome: "Foco de Cerimônia", 
     tipo: "ataque",
-    valor: 2,
+    valor: 3,
     descricao: "Foca a força do personagem em +2 de ataque permanente.",
     cor: "#ffe285",
-    imgId: null // Sem item mapeado ainda
+    imgId: "fogo_das_almas" // <--- Imagem nova adicionada aqui!
   },
 ];
 

@@ -180,18 +180,45 @@ function finalizeBattle(battle, state, venceu) {
 
 // Executa a ação do jogador e trata o contra-ataque do inimigo.
 function handlePlayerAction(state, ataqueEscolhido) {
-  // <--- Adicione aqui!
   const battle = state?.combat;
   if (!battle || battle.finalizado) return false;
 
-  // --- JOGADOR ATACA ---
-  // Pega o dano puro direto do ataque selecionado
+  // --- 1. VERIFICAÇÃO DE COOLDOWN ---
+  if (ataqueEscolhido.cooldown && ataqueEscolhido.emRecarga > 0) {
+    battle.mensagem = `Ataque ${ataqueEscolhido.nome} em recarga!`;
+    return false;
+  }
+
+  // --- 2. JOGADOR ATACA ---
   const damageDealt = battle.enemy.receiveAttack(
     battle.player.attackValue(ataqueEscolhido.dano),
   );
 
-  // Agora a mensagem fala o nome do golpe correto
   battle.mensagem = `Você usou ${ataqueEscolhido.nome} em ${battle.enemy.name} e causou ${damageDealt} de dano.`;
+
+  // --- 3. APLICA EFEITOS DE ATAQUE ---
+  let inimigoAtaca = true;
+
+  // Efeito Dar Choque: inicia o contador de recarga
+  if (ataqueEscolhido.id === "dar_choque") {
+    ataqueEscolhido.emRecarga = 2; // +1 porque ele vai descontar logo abaixo
+  }
+
+  // Efeito Flash Celular: 30% de chance de atordoar
+  if (ataqueEscolhido.id === "flash_celular" && Math.random() < ataqueEscolhido.chanceEfeito) {
+    inimigoAtaca = false;
+    battle.mensagem += `\nO inimigo ficou atordoado pelo Flash Celular!`;
+  }
+
+  // Desconta recarga de todos os ataques do jogador
+  if (state.ataques) {
+    state.ataques.forEach(nomeAtk => {
+      if (ATAQUES_JOGO[nomeAtk] && ATAQUES_JOGO[nomeAtk].emRecarga > 0) {
+        ATAQUES_JOGO[nomeAtk].emRecarga--;
+      }
+    });
+  }
+
   syncBattleSnapshot(battle, state);
 
   if (!battle.enemy.isAlive) {
@@ -199,17 +226,13 @@ function handlePlayerAction(state, ataqueEscolhido) {
     return true;
   }
 
-  // --- INIMIGO CONTRA-ATACA ---
-  // Inimigo ataca usando apenas a força base dele (+0 de bônus)
-  const poderInimigo = 0;
-  const enemyDamage = battle.player.receiveAttack(
-    battle.enemy.attackValue(poderInimigo),
-  );
-
-  battle.turn = TURN_STATES.ENEMY;
-  battle.estado = battle.turn;
-  battle.mensagem += `\n${battle.enemy.name} contra-atacou e causou ${enemyDamage} de dano.`;
-  syncBattleSnapshot(battle, state);
+  // --- 4. INIMIGO CONTRA-ATACA (apenas se não foi atordoado) ---
+  if (inimigoAtaca) {
+    const enemyDamage = battle.player.receiveAttack(battle.enemy.attackValue(0));
+    battle.mensagem += `\n${battle.enemy.name} contra-atacou e causou ${enemyDamage} de dano.`;
+  } else {
+    battle.mensagem += `\nO inimigo não conseguiu atacar!`;
+  }
 
   if (!battle.player.isAlive) {
     finalizeBattle(battle, state, false);
@@ -217,9 +240,7 @@ function handlePlayerAction(state, ataqueEscolhido) {
   }
 
   battle.turn = TURN_STATES.PLAYER;
-  battle.estado = battle.turn;
   syncBattleSnapshot(battle, state);
-
   return true;
 }
 

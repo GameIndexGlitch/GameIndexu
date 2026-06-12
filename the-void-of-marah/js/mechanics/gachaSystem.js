@@ -2,10 +2,51 @@
 
 const ATAQUES_JOGO = {
   soco: { id: "soco", nome: "SOCO", dano: 2 },
-  chute_forte: { id: "chute_forte", nome: "CHUTE FORTE", dano: 4 }
+  chute_forte: { id: "chute_forte", nome: "CHUTE FORTE", dano: 4 },
+  dar_choque: { 
+    id: "dar_choque", 
+    nome: "DAR CHOQUE", 
+    dano: 8, 
+    cooldown: 1, // Impede uso no próximo turno
+    emRecarga: 0 // Contador interno
+  },
+  flash_celular: { 
+    id: "flash_celular", 
+    nome: "FLASH CELULAR", 
+    dano: 5, 
+    chanceEfeito: 0.3, // 30% de chance
+    efeito: "stun" 
+  }
 };
 
 const GACHA_ITENS = [
+  {
+    nome: "Chute Forte",
+    tipo: "novo_ataque",
+    ataqueId: "chute_forte",
+    valor: 0,
+    descricao: "Um chute poderoso que causa 4 de dano.",
+    cor: "#ff9f43",
+    imgId: "chute"
+  },
+  {
+    nome: "Dar Choque",
+    tipo: "novo_ataque",
+    ataqueId: "dar_choque",
+    valor: 8,
+    descricao: "Causa 8 de dano. Entra em recarga por 1 turno.",
+    cor: "#a29bfe",
+    imgId: "dar_choque"
+  },
+  {
+    nome: "Flash Celular",
+    tipo: "novo_ataque",
+    ataqueId: "flash_celular",
+    valor: 5,
+    descricao: "30% de chance de atordoar o inimigo.",
+    cor: "#ffeaa7",
+    imgId: "flash_celular"
+  },
   {
     nome: "Poção de Cura",
     tipo: "vida",

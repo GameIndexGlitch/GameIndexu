@@ -99,6 +99,9 @@ const assets = {
   mayaCombat: new Image(),
   zeckCombat: new Image(),
   omnitrix: new Image(),
+  chute: new Image(),
+  dar_choque: new Image(),
+  flash_celular: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -156,6 +159,9 @@ assets.fundoCombat.src = "assets/bg/FundoCombat.png";
 assets.mayaCombat.src = "assets/drawings/chars/Combat/MayaCombat.png";
 assets.zeckCombat.src = "assets/drawings/chars/Combat/ZeckCombat.png";
 assets.omnitrix.src = "assets/pixel_art/gacha/omnitrix.png";
+assets.chute.src = "assets/pixel_art/gacha/chute.png";
+assets.dar_choque.src = "assets/pixel_art/gacha/dar_choque.png";
+assets.flash_celular.src = "assets/pixel_art/gacha/flash_celular.png";
 
 // Inicializa o módulo de cutscenes
 inicializarCutscenes();

@@ -24,7 +24,7 @@ const GACHA_ITENS = [
     nome: "Chute Forte",
     tipo: "novo_ataque",
     ataqueId: "chute_forte",
-    valor: 0,
+    valor: 4,
     descricao: "Um chute poderoso que causa 4 de dano.",
     cor: "#ff9f43",
     imgId: "chute"

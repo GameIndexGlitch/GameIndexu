@@ -105,7 +105,6 @@ const assets = {
   chaosWisp: new Image(),
   marah: new Image(),
   abyssalArcher: new Image(),
-  ironGolem: new Image(),
 };
 
 assets.fundo.src = "assets/drawings/titleScreenUI/background/TelaInicial.png";
@@ -167,7 +166,6 @@ assets.chute.src = "assets/pixel_art/gacha/chute.png";
 assets.dar_choque.src = "assets/pixel_art/gacha/dar_choque.png";
 assets.flash_celular.src = "assets/pixel_art/gacha/flash_celular.png";
 assets.chaosWisp.src = "assets/drawings/bosses/ChaosWispCombat.png";
-assets.ironGolem.src = "assets/drawings/bosses/ironGolemCombat.png";
 assets.marah.src = "assets/drawings/bosses/AvoMarahCombat.png";
 assets.abyssalArcher.src = "assets/drawings/bosses/AbyssalArcher.png";
 
